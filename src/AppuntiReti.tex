@@ -1,0 +1,1961 @@
+% !TEX encoding = UTF-8
+% !TEX program = pdflatex
+\documentclass[a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+\usepackage{hyperref}
+\usepackage{lmodern}
+\usepackage{titlesec}
+\usepackage{amsmath}
+
+\titleformat*{\section}{\LARGE\bfseries}
+\titleformat*{\subsection}{\Large\bfseries}
+\titleformat*{\subsubsection}{\large\bfseries}
+\titleformat*{\paragraph}{\normalsize\bfseries}
+\titleformat*{\subparagraph}{\normalsize\bfseries}
+
+\setcounter{secnumdepth}{4}
+
+\begin{document}
+
+\title{Appunti di Reti di Elaboratori}
+
+\author{Giovanni Varricchione}
+
+\date{12/07/2017}
+
+\maketitle
+
+\newpage
+
+\tableofcontents
+
+\clearpage
+
+\section{Note sugli Appunti}
+	
+	Questi appunti coprono l'intero programma del corso di Reti di Elaboratori tenuto dalla Prof.ssa Maselli nell'anno accademico 2016/2017. 
+	
+	Gli appunti sono basati sulle slide fornite dalla professoressa (reperibili al seguente \href{http://twiki.di.uniroma1.it/twiki/view/Reti_elab/MZ/WebHome?rev=131}{link}; si noti che sono relative all'a.a. 2016/2017) e sul libro di testo 	
+	
+	\noindent
+	 \textbf{Behrouz A. Forouzan e Firouz Mosharraf, "Reti di Calcolatori Un approccio top	down", versione italiana, Mc Graw Hill, marzo 2013}
+	.\newline
+	
+	L’introduzione riguarda concetti generali delle reti, non solo di elaboratori; successivamente viene introdotto lo stack TCP/IP, seguito poi da un approfondimento (in ordine) per ognuno dei seguenti livelli:
+	\begin{enumerate}
+		\item Applicazione;
+		\item Trasporto;
+		\item Rete;
+		\item Collegamento.
+	\end{enumerate}
+	Verranno infine introdotti alcuni concetti sulle LAN Wireless, sulla tecnologia Bluetooth e sul CDMA.
+	
+	
+	\subsection{Note sui Formati delle Intestazioni}
+		
+		I formati degli Header dei protocolli saranno divisi in righe, \textbf{ogni riga} equivale a \textbf{32 bit} e la \textbf{dimensione di ogni campo} è data dalla \textbf{divisione in parti uguali dei bit rimanenti sulla riga} (ad esempio, se su una riga ci sono 5 campi, di cui uno ha dimensione pari a 16 bit, allora tutti gli altri 4 campi avranno come dimensione $ \frac{32-16}{4} $, quindi 4 bit), a meno che non sia specificato diversamente.	
+	
+\newpage
+
+
+\section{Introduzione}
+
+	In questa sezione verranno introdotti:
+	\begin{itemize}
+	\item Dispositivi delle Reti;
+	\item Classificazione delle Reti;
+	\item Tipi di Commutazione;
+	\item Internet;
+	\item Capacità e Analisi delle Prestazioni delle Reti;
+	\end{itemize}	
+	
+	Una rete è fondamentalmente composta da vari dispositivi che si scambiano informazioni tra di loro; andiamo a vedere nel particolare quali possono 			essere.
+	
+	\subsection{Dispositivi delle Reti}
+	
+		In generale, in una rete i dispositivi vengono divisi in due categorie:
+		\begin{enumerate}
+			\item Terminali:
+				\begin{itemize}
+					\item Host (Utente);
+					\item Server;
+				\end{itemize}
+			\item Dispositivi di Interconnessione:
+				\begin{itemize}
+					\item Router (collega le reti);
+					\item Switch (collega terminali locali);
+					\item Modem (codifica i dati).
+				\end{itemize}
+		\end{enumerate}
+		
+		I dispositivi di ogni rete devono essere in qualche modo collegati fra loro, questo compito è delegato ai Collegamenti (o Link) che possono essere di due tipi:
+		\begin{enumerate}
+			\item Cablati (se c'è un mezzo fisico che collega i dispositivi)
+				\begin{itemize}
+					\item Doppino Intrecciato;
+					\item Cavo Coassiale;
+					\item Fibra Ottica;
+				\end{itemize}
+			\item Wireless (il segnale è trasmesso sullo spettro elettromagnetico, di conseguenza è suscettibile ad interferenze).
+		\end{enumerate}
+	
+	\newpage
+	\subsection{Classificazione delle Reti}
+		
+		Le Reti sono classificate in base alla loro dimensione, nel seguente elenco vengono ordinate in ordine di dimensione crescente:
+		\begin{itemize}
+			\item \emph{Vicinity}: PAN (Personal Area Network);
+			\item \emph{Building}: LAN (Local Area Network);
+			\item \emph{City}: 	MAN (Metropolitan Area Network);
+			\item \emph{Country}:	WAN (Wide Area Network);
+			\item \emph{Planet}:	The Internet (rete di reti);
+		\end{itemize}
+		
+		Di queste 5, ci interessano particolarmente le strutture delle reti LAN e WAN;
+		si noti che oggi reti LAN e WAN sono spesso collegate fra di loro, utilizzando i Router per instradare i pacchetti fra se stesse. Questa struttura è chiamata "internet" (che si differenzia dall'Internet, essendo una rete di reti più piccola).
+		
+		\subsubsection{Reti LAN}
+			
+			Una rete privata, essa è identificata da un indirizzo nel momento in cui viene connessa ad altre LAN e/o WAN e si dividono in:
+			\begin{itemize}
+				\item \emph{a Cavo Condiviso}, in cui ogni pacchetto di un terminale è inviato a tutti gli altri terminali ("Broadcast");
+				\item \emph{con Switch}, in cui un dispositivo chiamato "Switch di Interconnessione" è collegato a tutti i terminali e instrada i pacchetti dal mittente al destinatario.
+			\end{itemize}
+			
+		\subsubsection{Reti WAN}
+			
+			Una rete che può servire città, regioni e/o nazioni; essa generalmente è gestita da un ISP (Internet Service Provider).
+			Le reti WAN si differenziano in base al tipo di collegamento che c'è tra i mezzi di comunicazione:
+			\begin{itemize}
+				\item \emph{Punto-Punto}, se collega due mezzi di comunicazione tramite un mezzo dedicato (sia esso cablato o wireless);
+				\item \emph{a Commutazione}, se collega più switch di diverse reti (questa viene usata nelle Dorsali di Internet).
+			\end{itemize}
+			
+	\newpage
+	\subsection{Tipi di Commutazione}
+	
+		Per ogni rete è cruciale individuare il metodo attraverso cui viene determinato il percorso dei pacchetti fra due terminali; per questo motivo le reti vengono divise in due famiglie:
+		\begin{enumerate}
+			\item \emph{a Commutazione di Circuito}, in cui viene sempre garantito un collegamento dedicato fra i due terminali per tutta la durata della comunicazione. Per garantire ciò, le risorse di rete vengono divise e quindi allocate ai singoli collegamenti (\emph{Frequency} o \emph{Time} Division Multiplexing);
+			\item \emph{a Commutazione di Pacchetto}, in cui i pacchetti di un singolo messaggio possono prendere strade qualsiasi, il tutto per garantire una maggiore efficienza delle rete.
+		\end{enumerate}
+		
+	\subsection{Internet}
+	
+		Internet consiste di migliaia di reti interconnesse fra di loro.
+		
+		Per poter accedere ad Internet, un utente deve essere fisicamente collegato ad un ISP; tale collegamento è garantito da una parte di rete che viene detta \emph{Rete di Accesso}.
+		
+		\subsubsection{Metodi di Accesso}
+			
+			Il collegamento ad Internet può avvenire in tre modi diversi:
+			\begin{enumerate}
+				\item \emph{via Rete Telefonica}, quando si crea una WAN punto-punto attraverso la rete telefonica:
+					\begin{itemize}
+						\item \emph{Dial-Up}, in cui il modem è installato sulla linea telefonica, impossibilità di utilizzare la rete telefonica e navigare su Internet contemporaneamente;
+					  	\item \emph{DSL}, che divide la rete in tre fasce in modo da permettere l'utilizzo della linea telefonica e di internet contemporaneamente (l'accesso ad Internet è diviso in Upstream e Downstream);
+					\end{itemize}
+				\item \emph{Ethernet}, in cui lo Switch della LAN è collegato ad un router privato connesso a sua volta ad un router della dorsale;
+				\item \emph{Wireless}, diviso in:
+					\begin{itemize}
+						\item \emph{Wi-Fi}, in cui un Access Point è collegato ad una rete Ethernet Cablata ed ha un raggio di qualche decina di metri;
+						\item \emph{Cellulare}, in cui l'Access Point appartiene ad una compagnia telefonica (è detto \emph{Base Station}) ed ha un raggio di km.
+					\end{itemize}
+			\end{enumerate}
+			
+		\newpage
+		\subsubsection{Struttura}
+		
+			Gli ISP sono divisi in vari livelli, classificati sempre in base alla loro grandezza:
+			\begin{itemize}
+				\item ISP di livello 1 (sono connessi fra di loro e operano a livello nazionale);
+				\item ISP di livello 2 (sono connessi a quelli di livello 1 e operano a livello distrettuale);
+				\item ISP di livello 3 (sono connessi a quelli di livello due e sono le più vicine ai terminali).\newline
+			\end{itemize}
+			
+	\subsection{Capacità e Analisi delle Prestazioni delle Reti}
+	
+		Queste due caratteristiche di ogni rete sono calcolate in base a 4 elementi:
+		\begin{enumerate}
+			\item \emph{Ampiezza di Banda} (o \emph{Bandwidth});
+			\item \emph{Throughput};
+			\item \emph{Latenza} (o \emph{Ritardo});
+			\item \emph{Perdita dei Pacchetti}.
+		\end{enumerate}
+		
+		\subsubsection{Bandwidth}
+		
+			La Bandwidth misura due grandezze:
+			\begin{enumerate}
+				\item la quantità di hertz che rappresenta la larghezza dell'intervallo di frequenze utilizzato dal mezzo;
+				\item il \emph{bit rate}, ovvero la quantità di bit/secondo che un link supporta al massimo.
+			\end{enumerate}
+			Si noti che le due grandezze sono strettamente correlate.
+			
+		\subsubsection{Throughput}
+			
+			Il Throughput indica la quantità di bit/secondo garantita \emph{effettivamente} dal link: difatti il bit rate ne rappresenta soltanto un potenziale, in quanto il throughput sarà sempre minore.
+			
+			In un generico percorso con n link, il throughput è determinato dalla seguente formula:
+			\[ \min\{T_1, T_2, \dots, T_n\} \]
+			
+			Dove $ T_{i} $ è il throughput dell'\emph{i-esimo} link.
+			
+		\subsubsection{Ritardo e Perdita dei Pacchetti}
+		
+			Innanzitutto, per Ritardo (o Latenza), si intende il tempo che impiega un pacchetto ad arrivare a destinazione da quando parte il primo bit.
+			Nella Commutazione di Pacchetto, i singoli pacchetti vengono accodati nei buffer dei router, a questo punto possono verificarsi tre eventi:
+			\begin{enumerate}
+				\item Il buffer è vuoto ed il nuovo pacchetto viene quindi spedito subito;
+				\item Nel buffer ci sono altri pacchetti in attesa di essere inviati, l'ultimo pacchetto viene quindi messo in coda e deve attendere l'invio di quelli già presenti prima di poter essere inviato (Ritardo);
+				\item Il buffer è pieno, e quindi il nuovo pacchetto è scartato (Perdita).
+			\end{enumerate}
+			
+			Di seguito vengono esposte alcune cause dei ritardi:
+			\begin{itemize}
+				\item \emph{Ritardo di Elaborazione del Nodo}, che consiste nel ritardo generato dal controllo degli errori;
+				\item \emph{Ritardo di Accodamento}, che equivale all'attesa nella coda del router, si può stimare con la formula
+					  								 \( \frac{La}{R} \), dove:
+					\begin{itemize}
+						\item \emph{L} è la lunghezza del pacchetto in bit;
+						\item \emph{a} è il tasso medio di arrivo dei pacchetti al secondo;
+						\item \emph{R} è il rate bit/s del link;
+					\end{itemize}
+				\item \emph{Ritardo di Trasmissione}, che equivale al tempo necessario per immettere tutti i bit del pacchetto sul link; è uguale al  rapporto \( \frac{L}{R} \);
+				\item \emph{Ritardo di Propagazione}, che corrisponde al tempo che un bit impiega per percorrere il link; è dato dal rapporto \( \frac{d}{s} \), dove:
+					\begin{itemize}
+						\item \emph{d} è la lunghezza del link;
+						\item \emph{s} è la velocità di propagazione.
+					\end{itemize}
+			\end{itemize}
+
+\newpage
+
+
+\section{Stack TCP/IP}
+
+	Prima di introdurre lo Stack Protocollare TCP/IP, occorre definire cosa è un \textbf{protocollo}: per protocollo si intende un insieme di convenzioni che dettano le regole per la comunicazione fra una o più entità; esso va rispettato sia dal mittente che dal destinatario.
+	
+	Ogni protocollo, seguendo il principio del \emph{Divide et Impera}, viene spesso diviso in più \emph{layers} che possono essere immaginati come i "livelli interni" del singolo protocollo: ogni layer costituirà poi a sua volta un singolo protocollo.\newline
+	
+	Lo \textbf{\emph{Stack TCP/IP}} è una \emph{gerarchia di protocolli} che viene utilizzata in Internet; essendo una gerarchia, ogni livello fornisce servizi al livello superiore, mentre ne riceve da quello inferiore.
+	I livelli dello stack sono 5:
+	
+	\begin{center}
+		\begin{tabular}{cc}
+			\multicolumn{2}{c}{Stack TCP/IP}\\
+			\hline
+			\textbf{Applicazione} & Software \\
+			\textbf{Trasporto} & Software \\
+			\textbf{Rete} & Software e Hardware \\
+			\textbf{Collegamento} & Software e Hardware\\
+			\textbf{Fisico} & Hardware \\
+			\hline
+		\end{tabular}
+	\end{center}
+
+	Come infarinatura, i livelli dello stack possono essere descritti nel seguente modo:
+	\begin{enumerate}
+		\item \emph{Applicazione}: costituito dalle applicazioni, ovvero i software che offrono servizi all'utente (e.g. HTTP, SMTP, FTP, DNS), i pacchetti sono detti \emph{messaggi};
+		\item \emph{Trasporto}: trasferimento dei pacchetti tra due terminali, i protocolli principali sono il TCP (affidabile, in cui i pacchetti sono detti \emph{segmenti}) e l'UDP (inaffidabile, in cui i pacchetti sono detti \emph{datagrammi utente});
+		\item \emph{Rete}: instradamento dei pacchetti da mittente a destinatario, il protocollo principale è l'IP, in cui i pacchetti sono detti \emph{datagrammi};
+		\item \emph{Collegamento}: instradamento dei pacchetti da un nodo al successivo nel percorso da mittente a destinatario, i protocolli principali sono l'Ethernet, il Wi-Fi ed il PPP, in cui i pacchetti sono detti \emph{frame};
+		\item \emph{Fisico}: trasferimento dei bit a livello fisico.
+	\end{enumerate}
+	
+	Quando un pacchetto viaggia da un terminale ad un altro, esso attraversa tutto (o in parte, come si vedrà in seguito) lo stack TCP/IP. Una particolarità dello stack è che fra due livelli uguali dei terminali c'è una connessione diretta ma non fisica che viene detta \emph{"connessione logica"}.
+	
+	Durante la discesa e la salita ai pacchetti viene aggiunto o tolto ciò che si definisce \emph{"header di livello"} che contiene informazioni relative a quel livello e sono necessarie per il corretto funzionamento della trasmissione; nella discesa si verifica l'\emph{"Incapsulamento"}, mentre nella salita si verifica il \emph{"Decapsulamento"}. 
+	
+	Altre due funzionalità garantite dai protocolli sono il \emph{Multiplexing} ed il \emph{Demultiplexing} che consentono di ricevere o inviare pacchetti da o a più protocolli.
+	
+	\newpage
+	
+	\subsection{Livello Applicazione}
+	\label{sec:applicazione}
+	
+		Il livello Applicazione è il livello dello Stack TCP/IP che ha l'obiettivo di \textbf{fornire servizi all'utente} tramite i suoi protocolli e riceve servizi dal livello Trasporto. 
+		
+		I protocolli del livello Applicazione sono divisi in due categorie:
+		\begin{enumerate}
+			\item \emph{Standard}, ovvero quei protocolli che sono certificati e documentati dalle autorità di Internet;
+			\item \emph{Non Standard}, ovvero quei protocolli di utenti privati che non necessitano autorizzazioni (un esempio potrebbe essere un protocollo di comunicazione di un'azienda privata);
+		\end{enumerate}
+		
+		Una caratteristica che contraddistingue i protocolli del Livello Applicazione (sia quelli standard che non) è la loro \emph{architettura}, che può essere una delle seguenti tre:
+		\begin{itemize}
+			\item \emph{Client-Server}, in cui:
+				\begin{enumerate}
+					\item il \textbf{Client} è colui che chiede il servizio ed è in funzione solo quando necessita di tale servizio;
+					\item il \textbf{Server} è colui che offre il servizio ed è sempre in funzione, in attesa degli eventuali Client;
+				\end{enumerate}
+			\item \emph{Peer-to-Peer}, abbreviata in \textbf{P2P}, in cui non esiste gerarchia fra gli utenti e tutti quanti mettono a disposizione le loro risorse per offrire servizi, ma anche per poterli ricevere da altri (ritorneremo su quest'architettura in seguito);
+			\item \emph{Ibrida}, ovvero un'architettura che ha caratteristiche tipiche sia del Client-Server che del P2P (esempi sono le architetture P2P con struttura \emph{Centralizzata}).
+		\end{itemize}
+		
+		
+		\paragraph{Numeri di Porta}
+		\label{par:porta}	
+			infine, un concetto molto importante per i protocolli del livello Applicazione è il \emph{numero di porta}, che serve ad identificare il processo, 	e quindi il protocollo, nel terminale. Il numero di porta è un intero lungo 16 bit (può assumere quindi valori compresi fra 0 e 65535), tuttavia vi sono tre fasce che sono dedicate a determinati tipi di protocolli:
+			\begin{enumerate}
+				\item \textbf{da 0 a 1023}, ovvero le \emph{well known ports} che sono le porte dei protocolli Standard;
+				\item \textbf{da 1024 a 49151}, ovvero le porte \emph{registrabili} per i protocolli Non Standard che possono quindi essere usate da protocolli definiti da aziende o privati;
+				\item \textbf{da 49152 a 65535}, ovvero le porte \emph{effimere} che sono usati dai Client per mettersi in contatto con i Server.
+			\end{enumerate}
+	
+		\newpage
+	
+		\subsubsection{HTTP}
+		
+			\textbf{HTTP} (\emph{HyperText Transfer Protocol}) è un protocollo che \textbf{permette agli utenti di fare richieste alle pagine Web}; poiché si affida al protocollo TCP del livello Trasporto, garantisce che non vi siano errori o dati persi nelle risposte alle richieste, essendo il TCP stesso un protocollo affidabile.
+			
+			Utilizza la \textbf{porta 80}.\newline
+			
+			In base alla versione del protocollo, la connessione Client-Server può essere di due tipi diversi:
+			\begin{enumerate}
+				\item \emph{Persistente} per le versioni \textbf{dalla 1.1 in poi}, una connessione che o viene chiusa esplicitamente dal Client o viene chiusa da un timeout;
+				\item \emph{Non Persistente} per le versioni \textbf{precedenti alla 1.1}, una connessione che viene chiusa ad ogni risposta del server, quindi per ogni richiesta bisogna crearne una.
+			\end{enumerate}
+	
+			\paragraph{Formato dei Messaggi}
+				\textbf{NOTA}: d'ora in poi verranno utilizzate le seguenti abbreviazioni per ci caratteri specificati nei formati:
+				\begin{itemize}
+					\item \emph{spazio}: sp;
+					\item \emph{carriage return}: cr;
+					\item \emph{line field}: lf.\\
+				\end{itemize}
+				
+				Il formato varia nel caso in cui il messaggio sia una richiesta o una risposta:
+				\begin{itemize}
+					\item \textbf{\emph{Richiesta}}: 
+						\begin{enumerate}
+							\item \emph{Riga di Richiesta}:\\
+								\begin{tabular}{ccccccc}
+									\textbf{Metodo} & sp & \textbf{URL} & sp & \textbf{Versione} & cr & lf\\
+								\end{tabular}
+							\item \emph{Righe di Intestazione}, possono essere più di una e contengono le informazioni aggiuntive sulle richieste:\\
+								\begin{tabular}{cccccc}
+									\textbf{Nome Intestazione} & : & sp & \textbf{Valore} & cr & lf\\
+								\end{tabular}
+							\item \emph{Riga Vuota}, serve a dividere le Righe di Intestazione dal Corpo e consiste in un cr ed un lf;
+							\item \emph{Corpo}, contiene un numero di righe variabili (dipende dal tipo di richiesta).
+						\end{enumerate}
+					\item \textbf{\emph{Risposta}}:
+						\begin{enumerate}
+							\item \emph{Riga di Stato}:\\
+								\begin{tabular}{ccccccc}
+									\textbf{Versione} & sp & \textbf{Codice di Stato} & sp & \textbf{Frase di Stato} & cr & lf\\
+								\end{tabular}
+							\item \emph{Righe di Intestazione}, come nella Richiesta, possono essere più di una:\\
+								\begin{tabular}{cccccc}
+									\textbf{Nome Intestazione} & : & sp & \textbf{Valore} & cr & lf\\
+								\end{tabular}
+							\item \emph{Riga Vuota}, vedi Richiesta;
+							\item \emph{Corpo}, vedi Richiesta.
+						\end{enumerate}
+				\end{itemize}
+				
+				\newpage			
+				
+				\subparagraph{\emph{Metodi}}
+					i metodi sono delle parole chiave che servono ad indicare il servizio richiesto dal Client:
+					\begin{itemize}
+						\item \emph{GET}, richiesta documento;
+						\item \emph{HEAD}, richiesta informazioni documento;
+						\item \emph{PUT}, upload documento;
+						\item \emph{POST}, upload dati;
+						\item \emph{TRACE}, usato per debugging dal lato server;
+						\item \emph{CONNECT}, usato dai server proxy;
+						\item \emph{DELETE}, cancella pagina web;
+						\item \emph{OPTIONS}, richiesta informazioni pagina web.
+					\end{itemize}
+					
+				\subparagraph{\emph{Codici e Frasi di Stato}}
+					usati nella Riga di Stato della Risposta, sintetizzano l'esito della Richiesta:
+					\begin{itemize}
+						\item 100-199: risposta alla richiesta nel corpo;
+						\item 200-299: richiesta eseguita con successo;
+						\item 300-399: Client redirezionato ad un URL diverso;
+						\item 400-499: errore lato Client;
+						\item 500-599: errore lato Server.	
+					\end{itemize}
+					
+					
+				\paragraph{Richieste Condizionali}
+					le richieste possono anche essere accompagnate da condizioni che si devono verificare affinché il Server invii una risposta al Client; questo tipo di richieste è molto usato dai Server Proxy.
+					
+					
+				\paragraph{Caching}
+					per ovviare al carico di lavoro che si impone sul Server, spesso si usano dei Server detti \emph{"Server Proxy"} che agiscono da intermediari fra il Client ed il Server ma anche da "cache" per il Server (memorizzano temporaneamente le ultime risposte del Server). Si noti come il Server Proxy agisca sia da client che da server.
+					
+					
+				\paragraph{Cookie}
+					sono dei file che mantengono varie informazioni sui Client: ad ogni Client che invia una richiesta ad un Server ne viene assegnato uno, che è identificato dal suo numero; il Server mantiene quindi una tabella dei cookie in cui mantiene gli identificativi dei Client che hanno inviato una richiesta recentemente. 
+					
+					Per aggiornare le informazioni che si trovano nel cookie, ogni volta che il Client invia una richiesta al Server nell'intestazione del messaggio mette il suo identificativo, mentre quando il Server assegna il cookie al Client l'identificativo si trova nell'intestazione della risposta.
+					
+				\newpage
+		
+		\subsubsection{FTP}
+		
+			\textbf{FTP} (\emph{File Transfer Protocol}) è un protocollo che viene usato per il \textbf{trasferimento di file da un host ad un altro}; nonostante ciò sia già possibile con il protocollo HTTP, l'FTP è consigliabile essendo dedicato proprio a operazioni con file. Per garantire il servizio, l'FTP utilizza il protocollo TCP a livello Trasporto.
+			
+			Una particolarità dell'FTP è che la sua struttura differisce fra Client e Server:
+			\begin{itemize}
+				\item nel \textbf{Server} vi sono solo due componenti: il \emph{Processo di Controllo} ed il \emph{Processo di Trasferimento Dati};
+				\item nel \textbf{Client} invece le componenti sono tre: oltre a quelle del Server esiste anche l'\emph{Interfaccia Utente}.
+			\end{itemize}
+			
+			
+			\paragraph{Connessioni Client-Server}
+				fra Client e Server nell'FTP si stabiliscono due connessioni diverse, che connettono due componenti in comune:
+				\begin{enumerate}
+					\item \emph{Connessione Controllo}, si stabilisce fra i due \textbf{Processi di Controllo} sulla \textbf{porta 21}. Questa connessione è \textbf{persistente} e rimane attiva per tutta la durata della connessione FTP;
+					\item \emph{Connessione Dati}, si stabilisce fra i due \textbf{Processi di Trasferimento Dati} sulla \textbf{porta 20} e presuppone l'esistenza di una Connessione Controllo già attiva fra i due host. Questa connessione è \textbf{non persistente}, ed è dedicata al trasferimento di un singolo file, dopo il quale la connessione viene chiusa.
+				\end{enumerate}
+			
+			
+			\paragraph{Procedimento Apertura Connessione Dati}
+				una Connessione Dati è stabilita con la seguente sequenza di operazioni:
+				\begin{enumerate}
+					\item il Client effettua un'apertura \emph{passiva} (ovvero rimane in attesa della risposta del Server), con il comando PORT e usando una porta effimera;
+					\item il Server, ricevuta la richiesta, effettua l'apertura \emph{attiva} sulla porta 20;
+					\item prima di inviare il file, il Client deve specificare le caratteristiche del file che sta trasferendo al Server.
+				\end{enumerate}				
+				
+				
+			\paragraph{Formato Messaggi}
+				di seguito i formati dei due tipi di messaggi utilizzati nell'FTP:
+				\begin{itemize}
+					\item \emph{Comando}:
+					\begin{tabular}{cccc}
+									\textbf{Comando (keyword)} & [argomenti] & cr & lf\\
+					\end{tabular}
+					\item \emph{Risposta}:
+					\begin{tabular}{cccc}
+									\textbf{Codice (3 cifre)} & descrizione & cr & lf\\
+					\end{tabular}
+				\end{itemize}
+				
+				Si noti che nel formato del Comando gli argomenti sono opzionali, come indicato dalla presenza delle parentesi quadre, mentre nella Risposta la descrizione deve essere sempre presente.
+	
+			\newpage
+		
+		
+		\subsubsection{Posta Elettronica: SMTP, POP3, IMAP}
+		
+				Essendo la posta elettronica una comunicazione \textbf{asincrona} e \textbf{unidirezionale} (ad ogni mail non corrisponde necessariamente una risposta, e se esiste una risposta essa può essere inviata anche non immediatamente), quindi bisogna prestare particolare attenzione a tutte le operazioni che la riguardano; per questo motivo sono stati creati svariati programmi e protocolli per agevolare la \textbf{creazione}, l'\textbf{invio} e la \textbf{lettura} di email.
+				
+				
+				\paragraph{Creazione} 
+					la Creazione di email è gestita da un programma che è detto \textbf{UA} (\emph{User Agent}). 
+					
+					Ogni email ha lo stesso formato composto da due parti: l'\textbf{Intestazione}, in cui è specificato l'indirizzo del mittente, del destinatario e l'oggetto, ed il \textbf{Corpo}, che contiene il messaggio.
+					Gli indirizzi email sono caratterizzati infine da due parti (divise da una \textbf{@}):\\
+					\begin{center}
+						\begin{tabular}{ccc}
+							\textbf{Parte Locale} & @ & \textbf{Nome di Dominio}\\
+						\end{tabular}
+					\end{center}
+					Dove abbiamo che:
+					\begin{itemize}
+						\item il \emph{Nome di Dominio} è il Server di Posta su cui si trova la Mailbox dell'utente;
+						\item la \emph{Parte Locale} invece è il nome della Mailbox dell'utente.
+					\end{itemize}
+					
+					Va notato che l'utilizzo di un UA \textbf{non} è necessario per poter creare email, in quanto è possibile utilizzare anche un semplice Browser se si sta utilizzando una \textbf{Webmail}.
+				
+				
+				\paragraph{Trasferimento: SMTP}
+					il Trasferimento delle email è un processo che coinvolge due diverse Mailbox: la prima è quella del mittente, mentre la seconda è quella del destinatario.
+					
+					L'\textbf{MTA} (\emph{Mail Transfer Agent}), attraverso l'utilizzo del protocollo \textbf{SMTP} (\emph{Simple Mail Transfer Protocol}), permette di eseguire le seguenti operazioni:
+					\begin{enumerate}
+						\item Trasferire l'email dall'UA del mittente alla sua Mailbox (in questo caso, l'host del mittente agisce da Client, mentre la Mailbox da Server);
+						\item Trasferire l'email dalla Mailbox del mittente a quella del destinatario (in questo caso, la Mailbox del mittente è il Client, mentre la Mailbox del destinatario, è il Server).
+					\end{enumerate}
+						
+					\subparagraph{SMTP}
+						\textbf{SMTP} (\emph{Simple Mail Transfer Protocol}) è un protocollo dedicato al \textbf{trasporto di email}, caratterizzato da una connessione \textbf{persistente}, utilizza la \textbf{porta 25}.
+						
+						Le fasi della consegna sono divise in tre parti:
+						\begin{enumerate}
+							\item \emph{Apertura della Connessione}: il Server SMTP inizia la Connessione quando il Client si connette con una connessione TCP sulla porta 25;
+							\item \emph{Trasferimento del Messaggio}: viene inviato un singolo messaggio a uno o più destinatari;
+							\item \emph{Chiusura della Connessione}: infine il Client chiude autonomamente la connessione.
+						\end{enumerate}
+						
+						
+				\paragraph{Lettura: POP3 e IMAP4}
+					la Lettura consiste in una \emph{pull} dal Server di Posta del destinatario, che può essere eseguita o da un UA oppure con una Webmail.
+	
+					A seconda del metodo utilizzato, vengono usati protocolli diversi:
+					\begin{itemize}
+						\item nel caso dell'UA, bisogna usare o il \textbf{POP3} oppure l'\textbf{IMAP4} (in seguito verranno analizzate le differenze);
+						\item nel caso della Webmail, bisogna usare l'\textbf{HTTP}.
+					\end{itemize}
+					
+					\subparagraph{POP3}
+						\textbf{POP3} (\emph{Post Office Protocol}) è un protocollo che compensa le poche operazioni disponibili con una struttura molto semplificata: sostanzialmente, consente soltanto di leggere le email ricevute e poi cancellarle o mantenerle salvate sul Server di posta (due modalità differenti).				
+											
+						Utilizza il protocollo TCP e la \textbf{porta 101}.
+						
+					\subparagraph{IMAP4}
+						\textbf{IMAP4} (\emph{Internet Message Access Protocol}) è un protocollo molto più strutturato rispetto al POP3 che consente però molte più operazioni, come l'accesso simultaneo a più Server di posta, il mantenimento di informazioni sull'utente da un accesso all'altro, la ricerca di email, ecc\dots 
+						
+						Utilizza il protocollo TCP e la \textbf{porta 143}.
+						
+				
+				\paragraph{MIME}
+					\textbf{MIME} (\emph{Multipurpose Internet Mail Extensions}) è un protocollo che definisce nuove \textbf{caratteristiche per il formato delle email} (già definito dall'SMTP) e soprattutto permette agli UA di \textbf{trasformare dati non ASCII in dati ASCII} (specificando chiaramente la codifica da cui vanno tradotti), oltre a consentire l'invio di allegati o file non testuali.						
+		
+				\newpage
+		
+		
+		\subsubsection{DNS}
+		
+			Il \textbf{DNS} (\emph{Domain Name System}) è un sistema e protocollo che è dedicato all'\textbf{associazione e alla traduzione dei nomi di siti web e degli indirizzi IP}: poiché gli indirizzi IP sono difficili da memorizzare, gli vengono assegnati dei nomi (più semplici da ricordare) in modo da permettere agli utenti di accedere alle pagine web.
+			
+			In base alla dimensione della richiesta può utilizzare o il protocollo UDP (per richieste più piccole di 512 byte) oppure il protocollo TCP (per richieste oltre i 512 byte); utilizza la \textbf{porta 23}.	
+			
+			\paragraph{Struttura Gerarchica}
+				il sistema prevede una struttura \textbf{gerarchica} e \textbf{decentralizzata}, in modo da garantire efficienza nelle ricerche e anche la 	cosiddetta \emph{fault tolerance}, ovvero la resistenza ai guasti dei Server principali (che, oltre ad essere svariati, sono a loro volta replicati su Server di backup).
+			
+				Questa struttura gerarchica può essere vista come un albero in cui ci sono vari tipi di nodi:
+				\begin{itemize}
+					\item \emph{Root};
+					\item \emph{Top Level Domains} (o \textbf{TLD}, sono i domini come .it, .com, .edu, ecc\dots);
+					\item \emph{Authoritative}.
+				\end{itemize}
+			
+				Importante inoltre è anche il concetto di "\textbf{Zona}", ovvero tutto il sottoalbero di cui un Server è responsabile nella struttura; tale responsabilità può essere anche delegata a Server che sono radici in questi sottoalberi.
+			
+			\paragraph{Tipi di Server}
+				come già visto, nella gerarchia vi sono vari tipi di nodi; i Server sono infatti differenziati in base al loro ruolo nella struttura:
+				\begin{itemize}
+					\item \emph{Server Root}: sono i Server che hanno come zona tutto l'albero DNS. Sono 13 e sono distribuiti in tutto il mondo, oltre ad avere varie repliche;
+					\item \emph{Server Primari e Secondari}: sono i Server che hanno la responsabilità sulla loro zona, possono essere detti anche "Authoritative" per tutti gli indirizzi IP di cui sono responsabili. La differenza fra i Primari e i Secondari è che i Primari possono modificare le zone di cui sono responsabili, mentre i Secondari agiscono da repliche per i Primari, senza poter modificare le zone (si noti che un Server può essere Primario per una zona ma Secondario per un'altra).
+				\end{itemize}
+				
+			\paragraph{Domini}
+				i domini del DNS possono essere di diversi tipi:
+				\begin{itemize}
+					\item \emph{Generici}: suddividono gli host in base ai loro scopi (.com, .org, ecc\dots);
+					\item \emph{Nazionali}: individuano con un'etichetta di due caratteri la Nazione dell'host (.it, .us, .fr, ecc\dots);
+				\end{itemize}
+				
+			\paragraph{Risoluzione delle Richieste}
+				la risoluzione delle richieste è effettuata da un programma (presente in ogni host) chiamato \emph{Resolver}.
+				Il Resolver contatta il Server DNS locale del Client che può agire in due modalità diverse, in base al modo in cui vengono effettuate le richieste di traduzione:
+				\begin{itemize}
+					\item \emph{Ricorsiva}: se la richiesta viaggia lungo l'albero DNS partendo dalla radice fino ad arrivare all'Authoritative Server per quel nome;
+					\item \emph{Iterativa}: se la richiesta viene effettuata sempre dal Server Locale, ogni richiesta quindi o torna l'indirizzo IP oppure l'indirizzo di un Server che si pensa possa avere la traduzione richiesta.
+				\end{itemize}
+				
+			\paragraph{Caching}
+				in un sistema come il DNS ritorna molto utile il Caching dei dati, in modo da evitare sovraccarichi agli Authoritative Server di indirizzi molto richiesti.
+				Sia per motivi di memoria, sia per motivi di validità, ognuno dei record contiene al suo interno un \textbf{TTL} (o \emph{Time To Live}, espresso in secondi) che indica per quanto tempo il dato è ancora ritenuto valido.
+				
+				Il generico Record di Risorsa è fatto nel seguente modo:
+				\begin{center}
+					\begin{tabular}{ccccccccccc}
+						< & \textbf{Nome del Dominio} & ; & \textbf{Tipo} & ; & \textbf{Classe} & ; & \textbf{TTL} & ; & \textbf{Valore} & > \\
+					\end{tabular}
+				\end{center}
+				Dove, abbiamo:
+				\begin{itemize}
+					\item il \textbf{Nome del Dominio} è il nome di cui si richiede la traduzione;
+					\item il \textbf{Tipo} indica come vanno interpretati il Nome del Dominio ed il Valore;
+					\item la \textbf{Classe} indica la tipologia di rete;
+					\item il \textbf{Valore} indica l'indirizzo IP associato al Nome del Dominio.
+				\end{itemize}
+				
+				Il Tipo di ogni record caratterizza il Nome del Dominio ed il Valore a cui è associato, dando informazioni sul dato:
+				\begin{itemize}
+					\item \emph{A}, associa un nome ad un indirizzo IPv4 a 32 bit:
+					\begin{center}											
+						Hostname $ \rightarrow $ IP Address
+					\end{center}
+					\item \emph{CNAME}, associa un Alias (nome alternativo di un host) al Canonical Name:
+					\begin{center}									
+						Alias $ \rightarrow $ Canonical Name
+					\end{center}
+					\item \emph{NS}, associa un dominio al suo Server di Competenza:
+					\begin{center}									
+						Domain Name $ \rightarrow $ Name Server
+					\end{center}
+					\item \emph{MX}, associa un Alias al Mail Server Canonical Name:
+					\begin{center}									
+						Alias $ \rightarrow $ Mail Server Canonical Name
+					\end{center}
+				\end{itemize}
+				
+			\newpage
+			
+			
+		\subsubsection{Architettura P2P}
+		
+			Un protocollo con architettura P2P, a differenza di quella Client-Server, pone sullo stesso livello tutti gli host (detti \emph{peer}) che lo utilizzano; ogni peer condivide con la rete tutte le risorse che vuole, in modo da poterle chiedere ad altri peer collegati (che a loro volta hanno reso disponibili le loro risorse).
+			
+			Proprio per questa caratteristica, una grande difficoltà delle reti P2P è tener traccia della disponibilità di determinate risorse poiché i peer non sono Server, e quindi non sono sempre disponibili ad offrire i loro servizi.
+			
+			\paragraph{Strutture Reti P2P}
+				
+				\subparagraph{Centralizzate}
+					le reti P2P Centralizzate possono essere viste come una sorta di reti \emph{ibride} fra una rete P2P ed una Client-Server, poichè contiene delle directory che contengono la lista dei peer e delle loro risorse ed agiscono effettivamente da Server.
+	
+					Per questo motivo, queste reti sono particolarmente vulnerabili ad attacchi a queste directory centrali e alla congestione dei Server. 
+					
+					
+				\subparagraph{Decentralizzate}
+					le reti P2P Decentralizzate sono le vere e proprie reti P2P, senza "contaminazioni" Client-Server.
+	
+					Possono essere organizzate in vario modo:
+					\begin{itemize}
+						\item \emph{Strutturate}: reti in cui i peer sono organizzati in modo tale da ottenere una rendere più efficienti le operazioni, tuttavia diventa costoso il mantenimento della struttura quando si aggiungono molti peer;
+						\item \emph{Non Strutturate}: reti in cui i peer sono disposti in maniera casuale, le richieste sono inviate in flooding attraverso tutta la rete rendendone la risoluzione meno efficiente;
+						\item \emph{Gerarchica}: reti in cui vi sono dei peer detti \textbf{super peer} e che agiscono come le directory delle reti P2P Centralizzate. Le richieste vengono inviate in flooding solo attraverso i super peer, a differenza delle reti Non Strutturate, e in modo da non sovraccaricare i singoli super peer.
+					\end{itemize}
+					
+				\newpage
+	
+	
+		\subsection{Livello Trasporto}
+		
+			Il livello Trasporto fornisce servizi al livello Applicazione mentre ne riceve dal livello Rete; il suo compito principale consiste nel \textbf{far comunicare i processi di due host collegati}, dove per \emph{processo} si intende un programma in esecuzione; il processo Client e Server devono quindi essere identificati in maniera univoca e questo è possibile grazie ai \emph{Socket Address}.
+			
+			\paragraph{Socket Address}
+				un generico Socket Address è composto dall'indirizzo IP del suo host e dal numero di porta del processo (per l'approfondimento sui numeri di porta si rimanda al \hyperref[par:porta]{relativo paragrafo} nell'introduzione del livello Applicazione), nel seguente modo:\\
+				\begin{center}
+					\begin{tabular}{ccc}
+						\textbf{Indirizzo IP} & | & \textbf{\# di Porta}
+					\end{tabular}
+				\end{center}
+				
+			
+			\subsubsection{Controllo di Flusso e degli Errori}
+			
+				Il livello Trasporto, nel caso di determinati protocolli che vedremo in seguito, deve implementare due controlli che sono fondamentali per un'efficiente comunicazione fra due host: il primo è il \emph{Controllo di Flusso} ed il secondo è il \emph{Controllo degli Errori}.
+				
+				\paragraph{Controllo di Flusso}
+					l'obiettivo del Controllo di Flusso è l'evitare il sovraccarico del produttore (ovvero il mittente) o del consumatore (ovvero il destinatario), che porterebbe all'eliminazione dei pacchetti eccessivi, con conseguente perdita di informazioni. Affinché ciò non avvenga, vengono utilizzati due buffer, uno dal lato del mittente e uno dal lato del destinatario:
+					\begin{itemize}
+						\item dal \emph{lato mittente}, il livello Trasporto segnala al livello Applicazione quando ha il buffer pieno, in modo da fermare la produzione di pacchetti;
+						\item dal \emph{lato destinatario}, il livello Trasporto del destinatario segnala al livello Trasporto del mittente quando ha il buffer pieno, in modo da evitare l'invio di ulteriori pacchetti. 
+					\end{itemize}
+					
+				\paragraph{Controllo degli Errori}
+					poiché il protocollo principale del livello Rete (IP) è inaffidabile, il controllo dei pacchetti va implementato necessariamente al livello Trasporto. 
+					
+					Per effettuare il Controllo degli Errori i pacchetti che vengono inviati sono contrassegnati con un \emph{Numero di Sequenza}, che viene specificato da m bit nell'intestazione del livello Trasporto; di conseguenza, questi valori vanno da 0 a 2\ap{m}-1.
+					
+					Quindi, il destinatario, una volta \textbf{ricevuto senza errori} il pacchetto contrassegnato dal Numero di Sequenza \emph{x}, invia al mittente un pacchetto detto \emph{ACK} (ovvero Acknowledgment) che indica la corretta ricezione del pacchetto \emph{x}.
+					Tuttavia, poiché le ACK sono inviate solo se il pacchetto è ricevuto ed è corretto, il mittente non ha modo di sapere se il pacchetto è perso oppure è stato danneggiato, setta quindi per ogni pacchetto un timer che, una volta scaduto, indica la sua \emph{potenziale} perdita (notare il "potenziale": il pacchetto potrebbe essere bloccato nel traffico ma non effettivamente perso) o corruzione: a questo punto il mittente ne spedisce una copia, settando nuovamente il timer.
+					
+					Per verificare che un messaggio ricevuto sia corretto, il Destinatario utilizza la Checksum e, facendo varie operazioni su di essa (come spiegato nella \hyperref[sec:checksum]{sezione della Checksum}), determina se il pacchetto è intatto o corrotto.
+				
+				\paragraph{Integrazione dei Controlli}
+					sfruttando le soluzioni che sono state implementate singolarmente per i due Controlli, è possibile implementare un buffer circolare su cui si posta una \emph{finestra scorrevole} che racchiude determinate posizioni: queste sono le posizioni dei pacchetti che possono essere inviati o sono in attesa di un ACK dal destinatario; ad ogni ACK, viene liberata la relativa posizione ed eventualmente si fa scorrere la finestra scorrevole (se il pacchetto era il primo della finestra).
+					
+					
+					La grandezza del buffer è data dagli m bit che sono usati per rappresentare il Numero di Sequenza: ad m bit corrisponderanno quindi 2\ap{m} posizioni nel buffer.	
+					
+					
+			\subsubsection{Checksum}
+			\label{sec:checksum}	
+			
+				La Checksum è una sequenza di bit che viene inserita nell'header del livello Trasporto: essa serve al Destinatario per verificare che il messaggio ricevuto sia effettivamente uguale a quello che è stato trasmesso. Nei protocolli sicuri, mentre dal lato Destinatario è obbligatorio calcolare la Checksum, dal lato Mittente è opzionale, infatti, nel caso in cui il Mittente decidesse di non volerla calcolare, la pone uguale a 0 nell'header, se nel calcolo effettivo ottiene come valore proprio 0, allora setta a 1 tutti i bit.
+				
+				Il calcolo della Checksum varia leggermente fra Mittente e Destinatario, di seguito sono elencati tutti i passaggi da compiere in entrambi i lati per poterla calcolare:
+				\begin{itemize}
+					\item \emph{Lato Mittente}
+						\begin{enumerate}
+							\item Dividi il messaggio in parole da 16 bit;
+							\item checksum $ \leftarrow $ 0;
+							\item \textbf{Somma} tutte le parole (checksum compresa) col \textbf{complemento a 1};
+							\item Infine fai il complemento a 1 del risultato.
+						\end{enumerate}
+					\item \emph{Lato Destinatario}
+						\begin{enumerate}
+							\item Dividi il messaggio in parole da 16 bit;
+							\item Somma tutte le parole col complemento a 1;
+							\item Esegui il complemento a 1 del risultato;
+							\item Se il valore è \textbf{diverso da 0} allora il pacchetto \textbf{va scartato}.
+						\end{enumerate}
+				\end{itemize}						
+					
+				
+			\subsubsection{Servizi Connectionless e Connection-Oriented}
+			
+				Il livello Trasporto prevede vari protocolli che vengono classificati, in base alle loro caratteristiche, in due famiglie; anche i protocolli più usati (UDP e TCP) rientrano in questa classificazione.
+					
+				\paragraph{Connectionless}
+					nei servizi \emph{Connectionless} i protocolli sono molto più semplici e hanno meno overhead rispetto a quelli Connection-Oriented. Di seguito sono elencate le caratteristiche più importanti:
+					\begin{itemize}
+						\item Mittente e Destinatario sono \textbf{sempre pronti} a ricevere pacchetti;
+						\item i pacchetti sono \textbf{indipendenti fra di loro} e soprattutto \textbf{non sono numerati};
+						\item di conseguenza, né il Controllo di Flusso, né il Controllo degli Errori sono implementati;
+						\item garantiscono una connessione veloce, al prezzo della possibile perdita o dell'arrivo disordinato di pacchetti;
+						\item l'\textbf{UDP} è un protocollo Connectionless;
+					\end{itemize}
+						
+				\paragraph{Connection-Oriented}
+					i servizi \emph{Connection-Oriented} garantiscono invece una maggiore sicurezza nell'invio dei pacchetti, al costo di un maggiore overhead rispetto ai Connectionless:
+					\begin{itemize}
+						\item prima di potersi scambiare i pacchetti, Mittente e Destinatario devono \textbf{stabilire una connessione}, tramite la \emph{Three-Way-Handshake} (che è approfondita in questo \hyperref[par:apertura]{sottoparagrafo} della Connessione TCP);
+						\item i pacchetti sono \textbf{numerati};
+						\item vengono quindi implementati il Controllo di Flusso ed il Controllo degli Errori;
+						\item l'overhead come già detto è più pesante rispetto a quello dei Connectionless, tuttavia la trasmissione dei pacchetti è sicura;
+						\item il \textbf{TCP} è un protocollo Connection-Oriented.
+					\end{itemize}
+						
+				\newpage					
+										
+				
+			\subsubsection{Protocolli Livello Trasporto}
+				
+				Di seguito verranno introdotti alcuni protocolli del livello Trasporto, con esempi sia di protocolli Connectionless che Connectio-Oriented.
+	Seguirà quindi un approfondimento sui protocolli UDP e TCP.
+	
+				\paragraph{Semplice}
+					il protocollo Semplice è un protocollo Connectionless che prevede che Mittente e Destinatario siano sempre pronti a inviare o ricevere pacchetti.
+					
+					Il protocollo UDP usa una variante molto simile per gestire il trasferimento dei pacchetti.
+					
+				\paragraph{Stop-and-Wait}
+					il protocollo Stop-and-Wait è un protocollo Connection-Oriented (implementa quindi sia il Controllo di Flusso che il Controllo degli Errori, proprio come è stato spiegato in precedenza) che prevede, sia per Mittente che per Destinatario, una finestra scorrevole di \textbf{dimensione unitaria}. Consente quindi l'invio di un solo pacchetto alla volta, di cui bisogna poi attendere l'ACK (che, per convenzione, contiene il Numero di Sequenza del prossimo pacchetto atteso).
+					
+					Poiché la finestra scorrevole ha dimensione 1, per semplicità si preferisce usare come Numeri di Sequenza soltanto 0 e 1.
+					
+					Questo protocollo è particolarmente inefficiente su bande che possono supportare un traffico molto più elevato di un singolo pacchetto alla volta.
+					
+				\paragraph{Go Back N}
+					protocollo Connection-Oriented che prevede due finestre scorrevoli di \textbf{dimensioni diverse per Mittente e Destinatario}:
+					
+					\subparagraph{Mittente}
+						il Mittente ha una finestra scorrevole di dimensione \textbf{2\ap{m}-1}, che chiameremo $S\ped{size} $ (non si usa 2\ap{m} perchè crea problemi con i duplicati; per queste problematiche si rimanda al libro di testo e alle slide).
+						
+						Dei pacchetti nella finestra, ci interessano particolarmente il \textbf{Numero di Sequenza} del \textbf{primo} ($ S\ped{f}$) e dell'\textbf{ultimo} ($ S\ped{n}$) pacchetto per determinare se il Mittente deve mettersi \textbf{in attesa delle ACK}: infatti, se $ S\ped{n} = S\ped{f} + S\ped{size} $, allora il Mittente non può inviare altri pacchetti.
+						
+						Un grande vantaggio di questo protocollo è la possibilità per il Mittente di inviare \textbf{più pacchetti} alla volta, senza dover attendere l'ACK per ognuno di essi; ciò permette anche l'utilizzo di un singolo timer valido soltanto per il primo pacchetto ($ S\ped{f} $ ): se il timer scade allora il Mittente invia nuovamente tutti i pacchetti in \textbf{attesa di ACK} (per questo motivo è detto "Go Back N").
+						
+					\subparagraph{Destinatario}
+						il Destinatario ha invece una finestra scorrevole di dimensione \textbf{unitaria} che gli consente quindi di inviare l'ACK per un solo pacchetto alla volta: le ACK inviate dal Destinatario sono quindi dette \textbf{cumulative} poiché segnalano al Mittente che tutti i pacchetti con Numero di Sequenza minore di quello dell'ACK sono stati ricevuti correttamente (di conseguenza, al Destinatario non interessa se le ACK vanno perse). 
+						
+						Nel caso in cui il Destinatario ricevesse un pacchetto di cui ha già inviato l'ACK, invia al Mittente un'ACK col Numero di Sequenza del \textbf{prossimo} pacchetto atteso.
+						
+						Per rendere la trasmissione ancora più efficiente si può implementare un buffer dal lato del Destinatario che gli consenta di tenere in memoria per un periodo tutti i pacchetti che hanno Numero di Sequenza maggiore del prossimo atteso, in modo da non scartare i pacchetti successivi.
+						
+					\subparagraph{Aritmetica mod 2\ap{m}}
+						una particolarità di questo protocollo (e del prossimo che vedremo) è che i calcoli relativi ai Numeri di Sequenza sono tutti da fare in aritmetica mod 2\ap{m}, in modo da utilizzare effettivamente un buffer circolare che, una volta completato il giro dei 2\ap{m} pacchetti ricominci daccapo.
+						
+						Si noti che il protocollo Stop-and-Wait è un caso particolare del Go Back N con m = 0.
+						
+				\paragraph{Selective Repeat}
+					protocollo Connection-Oriented che prevede sia per Mittente che per Destinatario una finestra scorrevole di dimensione \textbf{2\ap{m - 1}} (come per il Go Back N, rimando al libro e alle slide per la spiegazione sul perché la dimensione non sia 2\ap{m}-1); questo protocollo in realtà è uno dei modi per risolvere il problema del Go Back N con i pacchetti che hanno Numero di Sequenza superiore al pacchetto in attesa (l'altro è l'allocazione di un buffer come abbiamo visto in precedenza) perché consente al Destinatario di poter ricevere e mandare le ACK di più pacchetti alla volta.
+					
+					A differenza del Go Back N, nel Selective Repeat il Mittente setta un timer \textbf{per ogni} pacchetto in attesa di ACK, in questo modo ritrasmette solo quelli che sono in attesa da troppo tempo (da questo deriva il nome Selective Repeat).
+					
+					Il Destinatario invece non invia più ACK cumulative, in quanto adesso invia un'ACK \textbf{per ogni} pacchetto ricevuto (anche se in disordine); la finestra scorrevole scorre solo quando viene ricevuto il primo pacchetto in attesa, a questo punto vengono passati tutti pacchetti per cui ha già inviato l'ACK.
+					
+					
+			\subsubsection{UDP}
+			
+				\textbf{UDP} (\emph{User Datagram Protocol}) è un protocollo per il livello Trasporto di tipo \textbf{Connectionless}, di conseguenza non è affidabile, non implementa né il Controllo di Flusso né il Controllo degli Errori e \textbf{non prevede la ritrasmissione} dei pacchetti dal lato del Mittente.
+				
+				Tuttavia, proprio grazie a queste caratteristiche, è \textbf{vantaggioso in termini di velocità e di overhead}: è dunque molto utile per quelle applicazione che possono "permettersi" di perdere dei pacchetti nelle comunicazioni ma devono garantire ottime prestazioni a livello di velocità (ad esempio applicazione per chat vocali).
+				
+				Per diminuire ulteriormente l'overhead, l'UDP non divide i pacchetti in User Datagram (Datagrammi Utente) e se li aspetta già divisi dal processo; inoltre, prevede pacchetti di \textbf{dimensione massima} pari a \textbf{65536} byte (si noti che di questi però solo 65508 al più possono essere byte di dati, in quanto 8 byte sono occupati dall'header dell'UDP e 20 dall'header dell'IP).				
+				
+				\paragraph{Formato Datagramma Utente}
+					\begin{center}
+						\begin{tabular}{cc}
+							Porta Sorgente & Porta Destinazione \\
+							\hline
+							Dim. Datagramma & Checksum \\
+							\hline
+							\multicolumn{2}{c}{Dati Pacchetto ($ \uparrow $ 65508 byte)}
+						\end{tabular}
+					\end{center}
+					
+			\newpage
+				
+			
+			\subsubsection{TCP}
+			
+				\textbf{TCP} (\emph{Transmission Control Protocol}) è un protocollo per il livello Trasporto di tipo \textbf{Connection-Oriented}, di conseguenza è affidabile , prevede l'apertura di una connessione prima delle trasmissioni, del Controllo di Flusso e del Controllo degli Errori.
+				
+				Una particolarità del TCP è che i Numeri di Sequenza e di Riscontro sono \textbf{relativi ai byte} (la loro numerazione inizia da un valore casuale concordato nella creazione della connessione) del pacchetto con la seguente caratterizzazione:
+				\begin{itemize}
+					\item \emph{Sequenza}: \textbf{primo} byte del pacchetto \textbf{attuale};
+					\item \emph{Riscontro}: \textbf{primo} byte del \textbf{prossimo} pacchetto atteso.
+				\end{itemize}
+				
+				\paragraph{Formato Segmento}
+				\label{par:formatoSegmento}
+					\begin{center}
+						\begin{tabular}{cccc}
+							\multicolumn{2}{c}{Porta Sorgente} & \multicolumn{2}{c}{Porta Destinazione} \\
+							\hline
+							\multicolumn{4}{c}{\textbf{\# Sequenza}} \\
+							\hline
+							\multicolumn{4}{c}{\textbf{\# Riscontro}} \\
+							\hline
+							Lunghezza Header (4) & Riservati (6) & \textbf{Flag} (6) & Dim Finestra Ricevente (16) \\
+							\hline
+							\multicolumn{2}{c}{Checksum} & \multicolumn{2}{c}{Puntatore Dati Urgenti} \\
+							\hline
+							\multicolumn{4}{c}{Opzioni ($ \uparrow $ 40 byte)} \\
+						\end{tabular}
+					\end{center}
+					
+					\subparagraph{Lunghezza Header}
+						la lunghezza dell'Header varia da 20 a 60 byte (in base alle Opzioni), di conseguenza la sua dimensione viene rappresentata con 4 bit, rappresentandola in maniera sintetica con i valori che vanno da $ \frac{20}{4} $ a $ \frac{60}{4} $.
+						
+					\subparagraph{Flag}
+						in ogni header ci sono 6 bit di Flag che danno varie informazioni riguardo al pacchetto:
+						\begin{enumerate}
+							\item \emph{URG}: se il segmento contiene dati detti "urgenti" (si rimanda al \hyperref[par:invioDati]{sottoparagrafo} sull'Invio Dati per la spiegazione);
+							\item \emph{ACK}: se il segmento contiene un riscontro valido;
+							\item \emph{PSH}: se il segmento che è in arrivo contiene dati che vanno "pushati" (si rimanda al \hyperref[par:invioDati]{sottoparagrafo} sull'Invio Dati per la spiegazione);
+							\item \emph{RST}: segnale per indicare l'azzeramento della connessione per un errore grave;
+							\item \emph{SYN}: utilizzato quando si apre la connessione per sincronizzare i \# Sequenza;
+							\item \emph{FIN}: segnala l'inizio della chiusura della connessione da parte di un host.
+						\end{enumerate}
+				
+					\subparagraph{Puntatore Dati Urgenti}
+					\label{par:pointerUrg}
+						puntatore che viene utilizzato \textbf{solo} nel caso in cui il bit \textbf{URG} è \textbf{settato a 1}: indica, a partire dall'inizio del segmento, fino a dove si trovano i dati \emph{urgenti}.
+						
+				\paragraph{Connessione TCP}
+					la connessione TCP si divide in 3 fasi: \textbf{Apertura}, \textbf{Invio Dati} e \textbf{Chiusura}:
+					
+					\subparagraph{Apertura}
+					\label{par:apertura}
+						l'Apertura della Connessione garantisce che la comunicazione fra gli host sia in modalità \emph{full-duplex} (ovvero ogni host può sia inviare che ricevere segmenti) ed è effettuata con la \textbf{\emph{Three-Way-Handshake}}.
+						
+						Nella Three-Way-Handshake il Server deve sempre trovarsi in uno stato di apertura \emph{passiva} (ovvero è sempre pronto ad aprire connessioni) e bisogna eseguire i seguenti 3 passi:
+						\begin{enumerate}
+							\item il Client invia al Server un segmento col bit \textbf{SYN attivo} e col \# Sequenza da cui comincerà ad inviare i segmenti;
+							\item il Server risponde al Client con un segmento con i bit \textbf{SYN} e \textbf{ACK attivi}, oltre ad inizializzare il suo \# Sequenza;
+							\item il Client invia infine un segmento col bit \textbf{ACK attivo}.
+						\end{enumerate}
+						
+						Si noti come nel passo 2 il Server invii, oltre all'informazione del \# Sequenza, anche l'ACK del segmento del Client inviato precedentemente: questa tecnica è detta \textbf{\emph{piggybacking}} e consiste nell'incapsulamento di un messaggio (in questo caso l'ACK) all'interno di un altro (il SYN); essa viene usato regolarmente nel TCP al fine di ottimizzare la comunicazione.
+						
+					\subparagraph{Invio Dati}
+					\label{par:invioDati}
+						come nell'Apertura, per inviare le ACK si usa la tecnica del \emph{piggybacking}.
+						
+						Per l'invio dei dati esistono due modalità speciali, il \emph{Pushing} e l'\emph{Urgent}, date rispettivamente dai bit \textbf{PSH} e \textbf{URG}:
+						\begin{itemize}
+							\item \emph{Pushing}: se il pacchetto dal lato del Destinatario va inviato immediatamente al processo al livello Applicazione;
+							\item \emph{Urgent}: se ci sono dati nel pacchetto detti \emph{urgenti}, essi possono essere riscontrati fuori sequenza (è molto importante in questo caso l'utilizzo del \hyperref[par:pointerUrg]{Puntatore Dati Urgenti}).
+						\end{itemize}
+						
+					\subparagraph{Chiusura}
+						la Chiusura può essere effettuata da uno qualsiasi dei due host, in due modi diversi:
+						\begin{itemize}
+							\item \emph{Three-Way-Handshake}: identica all'\hyperref[par:apertura]{Apertura}, ma usa il bit \textbf{FIN} al posto del SYN;
+							\item \emph{Four-Way-Handshake}: utile quando un host va messo in stato di \emph{half close}, in cui può ancora ricevere dati ma non inviarli.
+							Si può schematizzare nei seguenti 5 passaggi (solo 4 in realtà sono relativi alla Chiusura effettiva):
+							\begin{enumerate}
+								\item FIN $ \rightarrow $;
+								\item ACK $ \leftarrow $ : qui si esegue l'half close poiché l'altro host non ha inviato a sua volta il segmento col bit FIN attivo;
+								\item Dati $ \leftarrow $;
+								\item FIN $ \leftarrow $ : qui infine avviene la chiusura effettiva delle comunicazioni;
+								\item ACK $ \rightarrow $.
+							\end{enumerate}
+						\end{itemize}
+						
+					\newpage						
+					
+				\paragraph{Controllo di Flusso e Controllo degli Errori}
+					poiché il TCP prevede una comunicazione full-duplex, ad ogni connessione equivalgono esattamente quattro finestre scorrevoli: due per host (una di Invio e una di Ricezione) e che sono relative ai byte. Una particolarità del TCP è che, in base alle ACK, alla congestione della rete e al Controllo di Flusso prevede una variazione delle dimensioni delle finestre, che va quindi comunicata in ogni segmento per tenere l'altro host sempre al corrente (\hyperref[par:formatoSegmento]{formato del segmento}, si veda il campo \emph{Dim Finestra Ricevente}).
+					
+					Le ACK possono essere sia \textbf{cumulative} che \textbf{selettive} (in questo caso sono dette SACK; disponibili solo dall'ultima versione del TCP), c'è soltanto un timer di invio per host e i segmenti possono essere bufferizzati da entrambi i lati (per evitare di scartare quelli successivi a quello atteso).
+					
+					Per determinare la dimensione della finestra di Ricezione (\emph{rwnd}) in un dato momento per un host, basta calcolare la seguente differenza:
+					\[ rwnd = dim\ped{buffer} - \#byteDaConsumare \]
+					
+					\subparagraph{Controllo di Flusso}
+						il Controllo di Flusso è implementato con un sistema di feedback da parte del Destinatario che informa, in ogni segmento, il Mittente della dimensione attuale della sua finestra di Ricezione, di conseguenza è quest'ultimo ad adattare la sua finestra di Invio.
+						\begin{itemize}
+							\item \emph{Mittente}: la finestra di Invio del Mittente si sposta da sinistra verso destra nel momento in cui riceve le ACK per i dati che ha inviato, può inoltre essere aumentata o ridotta in base al valore della \emph{rwnd} che riceve nei segmenti inviatogli dal Destinatario;
+							\item \emph{Destinatario}: nel Destinatario la finestra di Ricezione è ridotta quando riceve dati che vengono bufferizzati, mentre è aumentata nel momento in cui i dati ricevuti vengono inviati al processo; in base a questi movimenti la \emph{rwnd} che viene inviata nel segmento di ACK varia, diminuendo nel primo caso e aumentando nel secondo.
+						\end{itemize}
+						
+						Si noti che la dimensione della finestra di Invio del Mittente è \textbf{sempre uguale} a quella della finestra di Ricezione del Destinatario.
+						
+					\subparagraph{Controllo degli Errori}
+						essendo il TCP un protocollo \textbf{affidabile}, deve gestire gli errori nei segmenti e soprattutto le \textbf{ritrasmissioni} quando i segmenti corrotti vengono scartati oppure persi; di conseguenza, implementa la Checksum in ogni segmento e vengono inviate le ACK per ogni segmento (tranne che per altre ACK).
+						
+						Per la \textbf{\emph{generazione di ACK}} il TCP usa sei regole:
+						\begin{enumerate}
+							\item implementazione del \emph{piggybacking}: ogni segmento contiene sempre l'ACK attuale del Mittente;
+							\item \emph{Delayed ACK}: quando si riceve un pacchetto viene settato un \textbf{timer di 500 ms} per l'eventuale arrivo di un altro segmento. Se alla fine del timer non è arrivato nessun segmento allora si invia l'ACK;
+							\item se invece si riceve un segmento entro i 500 ms viene \textbf{subito} inviata un'ACK;
+							\item se il Destinatario riceve un segmento fuori sequenza allora invia un'ACK del byte atteso, mentre bufferizza il segmento ricevuto;
+							\item appena si riceve \textbf{il segmento mancante} del punto 4, si invia l'ACK relativa (considerando anche i segmenti successivi ricevuti in precedenza che sono stati bufferizzati);
+							\item se si riceve un segmento \textbf{duplicato} allora si invia la copia dell'ACK relativa.
+						\end{enumerate}
+							
+						Invece, per quanto riguarda la \textbf{\emph{ritrasmissione dei segmenti}}, vanno considerate i seguenti due casi:
+						\begin{enumerate}
+							\item \emph{Timer Scaduto}: viene settato un unico timer per il \textbf{primo} segmento, allo scadere si ritrasmette il primo segmento e si resetta il timer;
+							\item \emph{3 ACK Duplicate}: quando si ricevono 3 ACK duplicate per lo stesso segmento probabilmente è perché è stato perso, di conseguenza avviene la cosiddetta \emph{ritrasmissione veloce} del pacchetto.
+						\end{enumerate}
+					
+				\paragraph{Controllo della Congestione}
+					il Controllo del Flusso controlla solo la congestione dal lato Destinatario, di conseguenza la \textbf{congestione nei Nodi intermedi} è ancora possibile: bisogna quindi predisporre una \textbf{finestra di congestione} (\emph{cwnd}), ponendola uguale al \textbf{numero di segmenti inviati e non riscontrati}.
+					\\
+					Di conseguenza, abbiamo che la dimensione della finestra di invio è pari al seguente valore:
+					\[ \min(rwnd, cwnd) \]
+					
+					\subparagraph{Sintomi della Congestione}
+						i sintomi della congestioni sono fondamentalmente i seguenti due:
+						\begin{enumerate}
+							\item \emph{Timeout}: quando scade il timer d'invio (indica la presenza di una congestione più severa);
+							\item \emph{3 ACK Duplicate}: quando il mittente riceve 3 ACK uguali (indica la presenza di congestione, ma non severa come nel caso del Timeout).
+						\end{enumerate}
+						
+						Questi due segnali vengono trattati in maniera diversa, ma solo dal \textbf{TCP Reno} in poi.
+						
+						
+					\subparagraph{Gestione della Congestione}
+						il TCP gestisce la Congestione con tre fasi diverse, in cui al verificarsi di diverse condizioni, la cwnd viene modificata nel seguente modo:
+						\[ cwnd = cwnd + 1 \]
+						\begin{enumerate}
+							\item \textbf{SS} (\emph{Slow Start}): in cui la cwnd è incrementata in \textbf{modo esponenziale} perché \textbf{ad ogni riscontro} viene modificata.\\					
+								Questa fase è bloccata nel momento in cui viene raggiunto il \emph{ssthreshold} (\emph{slow start threshold});
+							\item \textbf{CA} (\emph{Congestion Avoidance}): in cui la cwnd è incrementata in \textbf{modo lineare} perché viene modificata solo quando \textbf{è riscontrata tutta la cwnd};\\
+							\item \textbf{FR} (\emph{Fast Recovery}): usata \textbf{solo in Reno}, si attiva quando sono \textbf{ricevute 3 ACK duplicate} ed incrementa la cwnd in \textbf{modo esponenziale}, ma \textbf{solo} quando vengono \textbf{ricevute ACK duplicate}.\\
+								Il TCP rimane in questa fase finché:
+								\begin{itemize}
+									\item riceve una ACK \textbf{non} duplicata: va in \emph{Congestion Avoidance};
+									\item si verifica un Timeout: va in \emph{Slow Start}.
+								\end{itemize}
+						\end{enumerate}
+						
+				\paragraph{Versioni del TCP}
+					di seguito verranno analizzate due versioni del TCP che trattano in maniera diversa i due sintomi della congestione e, mentre la prima utilizza soltanto le fasi SS e CA, la seconda le usa tutte e tre.
+					
+					\subparagraph{TCP Taho}
+						prevede solo le fasi SS e CA, e tratta in maniera \textbf{uguale} il Timeout e le 3 ACK Duplicate:
+						\begin{itemize}
+							\item se sta in \textbf{SS} allora \emph{pone} \( cwnd = 1 \) e \emph{ssthresh} = \( \frac{cwnd}{2} \);
+							\item se sta in \textbf{CA} allora \emph{passa alla} \textbf{SS}, ed esegue le \emph{stesse operazioni del primo punto}.
+						\end{itemize}
+						
+					\subparagraph{TCP Reno}
+						considera in maniera differente il Timeout e le 3 ACK Duplicate e prevede tutte le tre fasi descritte in precedenza:
+						\begin{itemize}
+							\item \emph{Timeout}: va in \textbf{SS} \emph{ponendo} \( cwnd = 1 \) e \( ssthresh = \frac{cwnd}{2} \);
+							\item \emph{3 ACK Duplicate}: va in \textbf{FR} \emph{ponendo} \( cwnd = ssthresh + 3 \) e \(ssthresh = \frac{cwnd}{2} \) (in ordine, prima cambia l'ssthresh e poi la cwnd);
+							\item invece, se si trova in \textbf{FR} e riceve una ACK \textbf{nuova}, allora va in \textbf{CA} ponendo \( cwnd = ssthresh \).
+						\end{itemize}
+					
+				\paragraph{Calcolo Timer d'Invio}
+					il valore del Timer d'Invio (RTO d'ora in poi) deve tenere conto di due considerazioni:
+					\begin{enumerate}
+						\item deve essere \textbf{maggiore} del \textbf{RTT} (\emph{Round Trip Time}) che però, essendo molto variabile, può essere solo \emph{stimato} con una \emph{media ponderata};
+						\item tuttavia, se viene impostato troppo grande, allora si ha una reazione lenta alla perdita dei segmenti.
+					\end{enumerate}					 
+					
+					In base al \emph{SampleRTT} (ovvero l'RTT registrato al tempo \emph{t + 1}) si calcolano sia l'\emph{EstimatedRTT} che il \emph{DevRTT} (questo serve ad avere un margine di sicurezza):
+					\begin{enumerate}
+						\item \( EstimatedRTT_{t + 1} = (1 - \alpha) EstimatedRTT_{t} + \alpha SampleRTT_{t + 1} \);
+						\item \( DevRTT = (1 - \beta) DevRTT + \beta |SampleRTT - EstimatedRTT| \)
+					\end{enumerate}					 
+					
+					Si noti che, solitamente, \( \alpha \sim 0,125\) e \( \beta \sim 0,25 \).	
+					\\
+					
+					Infine, abbiamo che:
+					\[ TimeoutInterval = EstimatedRTT + 4DevRTT \]
+					
+					
+		\subsection{Livello Rete}	
+		
+			Il Livello Rete ha il compito di garantire la \textbf{consegna dei pacchetti dati fra host} (i pacchetti sono detti "\textbf{datagrammi}"), prevede quindi l'utilizzo di \textbf{indirizzi logici} e di vari \textbf{protocolli di instradamento}.
+			
+			Il Livello offre i seguenti servizi:
+			\begin{enumerate}
+				\item \emph{Suddivisione in Pacchetti}: divide i dati in datagrammi, senza modificarli (tranne la \hyperref[par:frammentazione]{\textbf{frammentazione}}, quando serve);
+				\item \emph{Instradamento} o \emph{Routing}: instradamento del pacchetto da mittente a destinatario sul percorso migliore;
+				\item \emph{Inoltro} o \emph{Forwarding}: inoltro del pacchetto al prossimo host lungo il percorso.
+			\end{enumerate}
+			
+			\paragraph{Packet Switching}
+				descrive la struttura del Forwarding, che può essere di due tipi diversi:
+				\begin{enumerate}
+					\item \emph{a Datagramma}: \textbf{Connectionless}, i pacchetti di uno stesso messaggio possono quindi seguire strade diverse (viene usato in Internet);
+					\item \emph{a Circuito Virtuale}: \textbf{Connection-Oriented}, fra mittente e destinatario viene stabilita una connessione che viene detto \emph{circuito virtuale}. Ad ogni circuito viene assegnato un numero, che viene usato anche per contrassegnare i pacchetti che viaggiano in tale ciruito (i pacchetti dello stesso messaggio attraversano la stessa strada).
+				\end{enumerate}							
+				
+			\paragraph{Struttura dei Router}
+				il Livello Rete è l'\textbf{ultimo livello} che può essere implementato da un Router; essi sono dunque dedicati allo "smistamento" dei pacchetti, senza però potervi accedere.
+				
+				In particolare, è importante analizzarne la struttura per capire come funziona il Livello Rete a livello hardware:
+				\begin{itemize}
+					\item Porte di \emph{Input} e di \emph{Output}: attraverso le prime ricevono i pacchetti mentre con le seconde li inviano;
+					\item \emph{Processore di Routing}: implementa le funzionalità del Livello Rete, in particolare ha anche il compito di organizzare la \textbf{forwarding table} in modo da rendere efficiente le operazioni di ricerca;
+					\item \emph{Switching Fabric}: si occupa del trasferimento dei dati dalle porte di Input a quelle di Output designate (in base al prossimo hop, si userà una certa porta di Output); la commutazione può essere eseguita in tre varianti:
+					\begin{enumerate}
+						\item \emph{Commutazione nella RAM}, che viene effettuata dalla CPU (occupandola quindi nel tempo e nelle risorse);
+						\item \emph{Commutazione tramite Bus}, che permette di trasferire un solo pacchetto alla volta dalle porte di Input a quelle di Output;
+						\item \emph{Commutazione a Crossbar Switch}, come la Commutazione \emph{tramite Bus}, ma permette di trasferire più pacchetti alla volta.
+					\end{enumerate}
+				\end{itemize}
+				
+			\subsubsection{Protocolli Livello Rete}
+			
+				Il Livello Rete utilizza vari protocolli (che vedremo in seguito) per garantire i servizi richiesti:
+				\begin{itemize}
+					\item \emph{IP} (v4 o v6);
+					\item \emph{IGMP} (multicasting);
+					\item \emph{ICMP} (segnalazione errori e testing);
+					\item \emph{ARP} (associazione indirizzi IP - indirizzi MAC);
+					\item \emph{DHCP} (associazione di nuovi nodi ai loro indirizzi IP, in realtà si trova al Livello Applicazione).
+				\end{itemize}
+						
+			
+			\subsubsection{IP}
+							
+				\textbf{IP} (\emph{Internet Protocol}) implementa i \textbf{servizi del Livello Rete} ed è un protocollo \textbf{inaffidabile}, basato sui \textbf{datagrammi}.
+				
+				\paragraph{Formato Datagrammi}
+					\begin{center}
+						\begin{tabular}{cccc}
+							Version (4) & HeaderLen (4) & ServiceType (8) & DatagramLen (16) \\ 
+							\hline
+							\multicolumn{2}{c}{MessageID (16)} & Flags (3) & FragmentedOffset (13) \\ 
+							\hline
+							TTL (8) & TransportLayerProtocol (8) & \multicolumn{2}{c}{HeaderChecksum} \\ 
+							\hline							 
+							\multicolumn{4}{c}{SourceIPAddress} \\
+							\hline
+							\multicolumn{4}{c}{DestinationIPAddress} \\
+							\hline
+							\multicolumn{4}{c}{Options ($ \uparrow $ 40 byte)} \\
+							\hline
+							\multicolumn{4}{c}{DATI} \\
+						\end{tabular}
+					\end{center}	
+					
+					Dove abbiamo che:
+					\begin{itemize}
+						\item \emph{HeaderLen}, ovvero la Lunghezza dell'Header, che viene espressa in unità di 4 byte (si noti che l'header va da 20 a 60 byte, quindi questo valore sarà sempre compreso fra 5 e 15);
+						\item \emph{Flags}, tre bit che danno informazioni sulla frammentazione del datagramma:
+						\begin{enumerate}
+							\item il primo è \emph{riservato};
+							\item \emph{Do Not Fragment}: indica se il datagramma può essere frammentato ulteriormente;
+							\item \emph{More Fragments}: indica se ci sono altri frammenti per lo stesso datagramma oltre a questo (è 0 solo per l'ultimo);
+						\end{enumerate}
+						\item \emph{FragmentedOffset}: serve a specificare l'\textbf{ordine} del frammento per poter \textbf{riassemblare a destinazione} il datagramma ed è pari al $ \frac{\# primoByteFrammento}{8} $.
+					\end{itemize}												
+			
+				\paragraph{Frammentazione}
+				\label{par:frammentazione}
+					la frammentazione è un'operazione necessaria, in quanto diverse reti supportano \textbf{Maximum Transfer Unit diverse}, ovvero grandezze massime diverse: di conseguenza, quando un pacchetto che poteva transitare integro in una rete arriva ad un'altra rete in cui la \emph{MTU} è minore della sua grandezza, esso va frammentato, per non poter perderne le informazioni.
+					
+					I pacchetti vengono poi riassemblati quando arrivano al Destinatario, utilizzando il valore del campo \emph{FragmentedOffset} per poterli riordinare.
+					
+				\paragraph{Indirizzamento IPv4}
+					ogni \textbf{interfaccia} che si trova nella rete (per interfaccia si intende una qualsiasi porta che collega un host ad un altro) deve poter essere identificata, per permettere l'invio di datagrammi ma anche il routing ed altre varie operazioni.
+					
+					Il generico indirizzo IPv4 è formato nel seguente modo:
+					\begin{center}
+						\begin{tabular}{ccc}
+							\textbf{prefisso} & | & \textbf{suffisso} \\
+						\end{tabular}
+					\end{center}
+					Sono formati da 32 bit (quindi possono esservi $ 2^{32} $ indirizzi in totale), il prefisso (che \textbf{identifica la rete}) ha \emph{n} bit, mentre il suffisso (che \textbf{identifica l'host}) ne ha $ 32 - n $.
+					
+					\subparagraph{Indirizzamento Con Classi}
+						l'indirizzamento con Classi definisce in maniera \textbf{statica} la lunghezza dei prefissi, in base alla rete in cui l'host si trova:
+						\begin{itemize}
+							\item \emph{A}: 8 bit prefisso, il primo bit è sempre 0;
+							\item \emph{B}: 16 bit prefisso, i primi due bit sono sempre 10;
+							\item \emph{C}: 24 bit prefisso, i primi tre bit sono sempre 110;
+							\item \emph{D}: usato per il multicasting, i primi quattro bit sono sempre 1110;
+							\item \emph{E}: riservato ad usi futuri, i primi quattro bit sono sempre 1111.
+						\end{itemize}
+						
+						L'unico vantaggio di questo tipo di indirizzamento è che è \textbf{semplice capire il tipo di rete} in base agli indirizzi dei suoi host, tuttavia si è rivelato troppo \textbf{vincolante} per le reti.
+						
+	 				\subparagraph{Indirizzamento Senza Classi}
+	 					l'indirizzamento senza Classi prevede una lunghezza \textbf{variabile} per il prefisso che viene specificata nell'indirizzo a seguito di un \textbf{"/"}.
+	 					\begin{center}
+		 					\begin{tabular}{ccccccccc}
+		 						\multicolumn{9}{c}{\emph{Notazione CIDR}} \\
+	 							\hline
+								\textbf{byte} & . & \textbf{byte} & . & \textbf{byte} & . & \textbf{byte} & / & \textbf{n}
+	 						\end{tabular}
+	 					\end{center}
+						
+						Dove \emph{n} è la lunghezza del prefisso (in base a questo valore, si avranno $ 2^{32 - n} $ possibili indirizzi per una rete).
+						
+					\newpage					
+					
+					\subparagraph{Maschera}
+						la \emph{Maschera} è utilizzata per ottenere varie informazioni sulle caratteristiche di una rete: sia \emph{n} il numero di bit del prefisso negli indirizzi della rete, allora la maschera è composta dai bit del prefisso settati a 1 ed i restanti $ 32 - n $ settati a 0.
+						
+						Con la Maschera è possibile (si noti che le operazioni sono da eseguire tutte in binario):
+						\begin{itemize}
+							\item calcolare il \textbf{\# di indirizzi della rete}: NOT(mask) + 1;
+							\item \emph{a partire da un qualsiasi indirizzo di quella rete}:
+							\begin{itemize}
+								\item ottenere il \textbf{primo indirizzo}: indirizzo AND mask;
+								\item ottenere l'\textbf{ultimo indirizzo}: indirizzo OR (NOT(mask)).
+							\end{itemize}
+						\end{itemize}
+						
+					\subparagraph{Indirizzi IP Speciali}
+						esistono vari indirizzi IP che sono dedicati ad utilizzi speciali, di seguito sono elencati alcuni:
+						\begin{itemize}
+							\item 0.0.0.0 : è l'indirizzo che si dà l'host quando entra in una rete e ancora non gliene è stato assegnato uno;
+							\item 255.255.255.255 : è l'indirizzo di \emph{broadcast} sulla rete attuale;
+							\item 127.x.y.z : è l'indirizzo di \emph{loopback} (usato per i pacchetti che devono essere elaborati come pacchetti in arrivo ma non vengono immessi nella rete);
+							\item da 224.x.y.z a 239.x.y.z : indirizzi usati per il \emph{multicast} (si rimanda al \hyperref[par:multicastAddress]{relativo paragrafo}).
+						\end{itemize}
+						
+					
+			\subsubsection{DHCP}
+				
+				Il protocollo \textbf{DHCP} (\emph{Dynamic Host Configuration Protocol}) permette agli host di \textbf{ottenere il proprio indirizzo IP} 	quando si collegano ad una rete; si noti che tale indirizzo può essere o \emph{temporaneo} o \emph{persistente} (in questo caso viene sempre associato lo stesso IP all'host quando si collega in quella rete).
+				
+				In realtà, il DHCP è un \textbf{programma Client/Server} e si trova quindi al \textbf{livello Applicazione}.
+				
+				\paragraph{Panoramica Funzionamento}
+					si noti che \textbf{tutti} i messaggi previsti sono inviati in \textbf{broadcast}: questo per permettere ai Server DHCP di conoscere quali indirizzi sono occupati.
+					\begin{enumerate}
+						\item l'Host (Client) invia un messaggio \emph{DHCP Discover};
+						\item un Server risponde in con un messaggio \emph{DHCP Offer};
+						\item l'Host risponde in \textbf{unicast} al Server con un messaggio \emph{DHCP Request};
+						\item il Server infine, se l'indirizzo nel frattempo non è stato assegnato, risponde al Client inviandogli un messaggio con \textbf{indirizzo}, \textbf{maschera di rete}, \textbf{indirizzo del Router} e del \textbf{DNS}, oltre al \emph{DHCP ACK}.
+					\end{enumerate}
+					
+				\paragraph{Formato Messaggi} 
+				\begin{center}				
+					\begin{tabular}{cccc}
+						\textbf{OpCode} & \textbf{HWType} & \textbf{HWLen} & \textbf{HCount} \\
+						\hline
+						\multicolumn{4}{c}{\textbf{Transaction ID}} \\
+						\hline
+						\multicolumn{2}{c}{Elapsed Time} & \multicolumn{2}{c}{Flags} \\
+						\hline
+						\multicolumn{4}{c}{Client IP Address} \\
+						\hline
+						\multicolumn{4}{c}{Your IP Address} \\
+						\hline
+						\multicolumn{4}{c}{Server IP Address} \\
+						\hline
+						\multicolumn{4}{c}{Gateway IP Address} \\
+						\hline
+						\multicolumn{4}{c}{Client HW Address} \\
+						\hline
+						\multicolumn{4}{c}{Server Name ($ \uparrow $ 64 byte)} \\
+						\hline
+						\multicolumn{4}{c}{Boot File Name ($ \uparrow $ 128 byte)} \\
+						\hline
+						\multicolumn{4}{c}{Options ($ \uparrow $ 64 byte} \\
+					\end{tabular}
+				\end{center}
+				
+				Dove abbiamo:
+				\begin{itemize}
+					\item \emph{OpCode}: è 1 per le \textbf{richieste}, 2 per le \textbf{risposte};
+					\item \emph{HWLen}: è la lunghezza dell'indirizzo HW (si rimanda alla sezione \\ \hyperref[sec:MAC]{sull'indirizzamento MAC});
+					\item \emph{HCount}:  è il numero massimo di hop (ovvero \textbf{link attraversati}) che il pacchetto può fare;
+					\item \emph{Transaction ID}: viene usato dai Client e Server per identificare lo scambio dei messaggi;
+					\item \emph{Flags}: il primo bit indica se il messaggio è in broadcast (1) o in unicast (0), gli altri sono inutilizzati;
+					\item \emph{Client IP Address}: IP del Client (dal Client al Server, al primo punto è impostato a 0.0.0.0);
+					\item \emph{Your IP Address}: IP del Client (dal Server al Client);
+					\item \emph{Server IP Address}: IP del Server (è l'indirizzo broadcast se il Client ancora non lo conosce).
+				\end{itemize}
+				
+				
+			
+		\subsubsection{Sottoreti e NAT}
+		
+			Una \emph{sottorete} è una parte di rete \textbf{isolata} che è \textbf{collegata} al resto della rete tramite \textbf{l'interfaccia di un solo router o host}.
+			
+			L'indirizzo IP di un qualsiasi terminale nella sottorete possiede un \textbf{prefisso di sottorete} di \textbf{n bit} che serve ad individuarla, seguito dall'indirizzo effettivo dell'host nella sottorete, che ha $ 32 - n $ bit.
+			
+			\paragraph{Reti Private}
+				vista la rapida diffusione delle sottoreti, è stata necessaria l'introduzione del concetto di \emph{Rete Privata} per poter \textbf{"inglobare"} le sottoreti sotto un \textbf{unico indirizzo}, il che ha portato vari vantaggi:
+				\begin{enumerate}
+					\item la possibilità di usare indirizzi uguali per host in sottoreti diverse, aumentando di fatto il numero di host totali collegati alla rete;
+					\item aggiungere un livello di sicurezza per le sottoreti (gli host non possono essere indirizzati esplicitamente da fuori);
+					\item cambiare l'IP di un host di una sottorete senza dover informare tutta la rete del cambiamento.
+				\end{enumerate}
+		
+			\paragraph{NAT}
+				Il \textbf{NAT} (\emph{Network Address Translation}) si occupa della \textbf{traduzione degli indirizzi privati} e di \textbf{"nascondere" le reti private locali}; ciò è possibile grazie ad un \textbf{router NAT} che mette in comunicazione la rete privata col resto della rete (si trova in mezzo).
+				
+				\subparagraph{Funzionamento NAT}
+					il router NAT mantiene una \textbf{tabella di traduzione NAT} in cui \textbf{associa ad ogni host} nella rete privata una \textbf{porta effimera} che usa quando invia messaggi all'esterno: il messaggio inviato avrà infatti come indirizzo del mittente l'indirizzo della rete privata e la porta effimera assegnata all'host; quando invece il messaggio viene da un host fuori dalla rete, la traduzione è effettuata al contrario (la porta di destinazione sarà la porta effimera usata precedentemente).
+					
+		
+		\subsubsection{Forwarding IP}
+			
+			Consiste nell'invio del datagramma tramite l'hop corretto, usando la \textbf{\emph{tabella di routing}}, che \textbf{associa} gli \textbf{indirizzi di rete} con le \textbf{interfacce del router}. Il datagramma contiene l'IP dell'host destinatario, senza però specificarne la rete (per trovarla bisogna confrontare i prefissi della tabella di inoltro con l'indirizzo, e prendere il prefisso \textbf{più lungo} che combacia).
+			
+			
+		\subsubsection{ICMP}
+		
+			\textbf{ICMP} (\emph{Internet Control Message Protocol)} è un protocollo che offre servizi destinati alla \textbf{gestione degli errori} ed al \textbf{testing} (ad esempio usando i comandi quali il \emph{ping} od il \emph{traceroute}).
+			
+			ICMP si trova "figurativamente" \textbf{sopra IP}, perché lo \textbf{usa per inviare i messaggi}.
+			
+			\paragraph{Messaggi ICMP}
+			\begin{center}
+				\begin{tabular}{ccc}
+					\textbf{Type} (8) & \textbf{Code} (8) & \textbf{Checksum} \\
+					\hline
+					\multicolumn{3}{c}{IP Header} \\
+					\hline
+					\multicolumn{3}{c}{primi 8 byte datagramma} \\
+				\end{tabular}
+			\end{center}
+			
+			L'Header IP e i "primi 8 byte datagramma" si riferiscono al datagramma che ha causato l'errore.
+			
+			\newpage
+			
+			
+		\subsubsection{Routing}
+		
+			Il \textbf{Routing} consiste nell'operazione preliminare di \textbf{costruzione della tabella di routing}, usata poi dal Forwarding per inoltrare i datagrammi.
+			
+			Per la creazione della tabella vengono usati ciò che sono detti "\emph{Algoritmi di Instradamento}" per ottenere i \textbf{percorsi più efficienti}. 
+			
+				\subparagraph{Tabella di Routing}
+					le tabelle di routing che vengono implementate in RIP ed OSPF contengono tre colonne, la prima indica la rete di destinazione, la seconda il prossimo router che si trova sul percorso per raggiungerla (quest'informazione viene usata nel Routing) e la terza il costo, ovvero il numero di hop, per raggiungerla:
+					\begin{center}
+						\begin{tabular}{ccccc}
+						\textbf{Rete di Destinazione} & | & \textbf{Prossimo Router} & | & \textbf{Costo} \\
+						\end{tabular}
+					\end{center}
+			
+			\paragraph{Caratterizzazione Algoritmi di Instradamento}
+				gli Algoritmi di Instradamento sono differenziati in base a due caratteristiche:
+				\begin{enumerate}
+					\item Globale o Decentralizzato:
+						\begin{itemize}
+							\item \emph{Globale}: se ogni nodo riceve in input \textbf{tutti} i nodi ed i costi dei link $ \rightarrow $ \emph{link-state algorithm};
+							\item \emph{Decentralizzato}: se ogni nodo elabora il suo \textbf{vettore delle distanze} che poi invia ai suoi vicini $ \rightarrow $ \emph{distance-vector algorithm};
+						\end{itemize}
+					\item Statico o Dinamico:
+						\begin{itemize}
+							\item \emph{Statico}: se non ricalcola spesso i cammini;
+							\item \emph{Dinamico}: se ricalcola i cammini in base alla congestione ed al tipo di rete.
+						\end{itemize}
+				\end{enumerate}
+				
+			\paragraph{Link-State Algorithm}
+				il Link-State Algorithm è un algoritmo di instradamento globale che viene usato dal protocollo OSPF.
+				
+				Prima di tutto, va costruito l'\textbf{LSDB} (\emph{Link-State Database}): per fare ciò ogni nodo invia ai suoi vicini il \textbf{costo dei link ricorsivamente}, effettuando il cosiddetto \emph{flooding} della rete.
+				
+				A questo punto, ogni nodo, usando l'\textbf{algoritmo di Dijkstra} e l'LSDB, crea la sua tabella d'inoltro, usando se stesso come nodo sorgente.
+			
+			\paragraph{OSPF}
+				\textbf{OSPF} (\emph{Open Shortest Path First}) è un \textbf{protocollo di routing} basato sul \emph{Link-State Algorithm}.
+				
+				Il protocollo esegue l'algoritmo descritto precedentemente, definendo però un \textbf{timer di 30 minuti} al cui scadere viene rieseguito l'algoritmo.
+				
+				\newpage				
+				
+				\subparagraph{Messaggi OSPF}
+					\begin{itemize}
+						\item \emph{HELLO}, usato dai router per annunciare la propria esistenza;
+						\item \emph{DATABASE DESCRIPTION}, usato in risposta a \emph{HELLO}, contiene l'intero LSDB;
+						\item \emph{LINK-STATE REQUEST}, usato per richiedere informazioni su un determinato collegamento;
+						\item \emph{LINK-STATE UPDATE}, usato principalmente per la costruzione dell'LSBD, o in risposta a \emph{LINK-STATE REQUEST};
+						\item \emph{LINK-STATE ACK}, usato per il riscontro del \emph{LINK-STATE UPDATE}.
+					\end{itemize}
+				
+				\subparagraph{Implementazione OSPF}
+					OSPF è implementato a \textbf{Livello Applicazione}, sulla \textbf{porta 89} ed \textbf{utilizza direttamente IP}, senza passare tramite TCP o UDP (il primo non supporta il multicasting, ed il secondo non è affidabile) ma usando un proprio sistema.
+				
+			\paragraph{Distance-Vector Algorithm}
+				il Distance-Vector Algorithm ha le due seguenti caratteristiche:
+				\begin{itemize}
+					\item \emph{Asincrono}, perché ogni nodo non opera necessariamente insieme agli altri;
+					\item \emph{Distribuito}, perché ogni nodo opera con le informazioni ricevute dai vicini, e non con una struttura centralizzata.
+				\end{itemize}
+				
+				Esso è basato su:
+				\begin{itemize}
+					\item \emph{Vettore delle Distanze}: vettore monodimensionale che contiene i costi minimi per andare da un nodo sorgente a qualsiasi altro nodo raggiungibile nella rete;
+					\item \emph{Equazione di Bellman-Ford}: equazione che viene usata per determinare i cammini minimi:
+					\[ D_x(y) = \min_v\{c(x, v) + D_v(y)\} \]
+					dove abbiamo:
+					\begin{itemize}
+						\item \emph{x} è il nodo \textbf{radice};
+						\item \emph{v} sono tutti i nodi \textbf{vicini di x};
+						\item \emph{y} è il nodo \textbf{che si vuole raggiungere};
+						\item $ c(x, v) $ è il \textbf{costo per andare da x a v}.
+					\end{itemize}
+				\end{itemize}
+				
+				\subparagraph{Creazione del Distance Vector}
+					il Distance Vector è creato attraverso i seguenti sei passi:
+					\begin{enumerate}
+						\item il nodo inizializza il Distance Vector;
+						\item con un messaggio di \emph{HELLO} il nodo contatta i suoi vicini e ne ottiene le distanze, aggiornando il vettore;
+						\item il nodo invia una copia a tutti i suoi vicini del suo Distance Vector;
+						\item quando il nodo riceve un vettore da un vicino, allora \textbf{applica Bellman-Ford} per aggiornare il suo vettore;
+						\item se il Distance Vector è cambiato, allora notifica i suoi vicini;
+						\item ritorna al punto 4 e rimane in attesa.
+					\end{enumerate}
+					
+				\subparagraph{Modifiche dei Costi}
+					un problema che sorge quando viene inviato il Distance Vector è che un nodo non può inviare ad un suo vicino i costi delle rotte che passano attraverso il vicino stesso (ciò porterebbe a problemi con l'aggiornamento del vettore del vicino); di conseguenza ci sono due approcci possibili per risolvere la questione:
+					\begin{itemize}
+						\item \emph{Split Horizon}, in cui si \textbf{cancellano} i costi delle rotte ai nodi che passano attraverso il vicino a cui si sta inviando il vettore;
+						\item \emph{Poisoned Reverse}, in cui i costi delle rotte ai nodi che passano attraverso il vicino vengono \textbf{posti uguali a $ +\infty $} (più sicuro perché dà al vicino l'informazione sulla rotta, a differenza di \emph{Split Horizon}).
+					\end{itemize}
+					
+			\paragraph{RIP}
+				\textbf{RIP} (\emph{Routing Information Protocol}) è un \textbf{protocollo di routing} che si basa sul \emph{Distance-Vector Algorithm}, a differenza di questo però, i nodi inviano la loro \textbf{completa tabella di routing}, invece del Distance Vector.
+				
+				In RIP, \textbf{ogni hop costa 1}, e 15 è il costo massimo che può essere assegnato ad un percorso (di fatto, 16 equivale a $ +\infty $).
+				
+				Una particolarità di RIP è che misura misura solo i \textbf{costi interreti}, e non al loro interno.
+					
+				\subparagraph{Messaggi RIP}
+					in RIP vi sono due tipi di messaggi, usati per costruire le tabelle:
+					\begin{enumerate}
+						\item \emph{RIP Request}, usato per richiedere l'invio della tabella di routing, a fini diagnostici o di costruzione;
+						\item \emph{RIP Response}, usato per inviare le tabelle di routing, viene detto anche \emph{Advertisement}, e può essere una risposta ad una  \emph{RIP Request} oppure viene inviato allo scadere del \emph{Timer RIP}.
+					\end{enumerate}
+				
+				\subparagraph{Formato Messaggi}
+					\begin{center}
+						\begin{tabular}{ccc}
+						\textbf{Command} (8) & \textbf{Version} (8) & Reserved \\
+						\hline
+						\multicolumn{3}{c}{\textbf{Entry tabella di routing}} \\
+						\end{tabular}
+					\end{center}
+					
+					si noti che il numero massimo di entry allegabili ad un messaggio è 25.
+					
+				\subparagraph{Formato Entry}
+					\begin{center}
+						\begin{tabular}{cc}
+							Family & Tag \\
+							\hline
+							\multicolumn{2}{c}{\textbf{Network Address}} \\
+							\hline
+							\multicolumn{2}{c}{\textbf{Subnet Mask}} \\
+							\hline
+							\multicolumn{2}{c}{\textbf{Next Hop}} \\
+							\hline
+							\multicolumn{2}{c}{\textbf{Distance}} \\
+							\hline
+						\end{tabular}
+					\end{center}
+					
+					dove \emph{Family} indica la famiglia del protocollo (per il TCP/IP il valore è 2), mentre \emph{Tag} dà informazioni sul sistema autonomo.
+					
+				\subparagraph{Timer RIP}
+					RIP \textbf{implementa tre timer} per migliorare la gestione delle informazioni di routing, per l'invio delle tabelle e per l'eliminazione di rotte non più valide:
+					\begin{enumerate}
+						\item \emph{Timer Periodico} $ \sim 30 $ secondi, allo scadere del quale il nodo invia la sua tabella di routing ai suoi vicini;
+						\item \emph{Timer di Scadenza} $ \sim 180 $ secondi, allo scadere del quale, se non si è ricevuto nessun \emph{advertisement} su una rotta per una rete, allora il costo di quella rotta viene impostato a 16 e la rotta è considerata \textbf{non valida};
+						\item \emph{Timer per Garbage Collection} $ \sim 120 $ secondi, settato per ogni rotta non valida: se essa rimane in questo stato per 120 secondi allora viene eliminata dalla tabella.
+					\end{enumerate}
+				
+				\subparagraph{Caratteristiche di RIP}
+					\begin{itemize}
+						\item \emph{Split Horizon with Poisoned Reverse}: si modifica a 16 il costo di tutte le rotte che passano tramite il vicino a cui si sta inviando la tabella;
+						\item \emph{Triggered Updates}: quando una rotta per una rete è modificata si invia immediatamente l'informazione ai vicini, senza attendere lo scadere del timer;
+						\item \emph{Hold-Down}: quando una rotta diventa non valida, allora tutte le advertisement per quella rotta vengono scartate per un certo periodo.
+					\end{itemize}
+				
+				\subparagraph{Implementazione RIP}
+					RIP è implementato al \textbf{Livello Applicazione} sulla \textbf{porta 520} ed usa il \textbf{protocollo UDP}; è eseguito con un processo che è chiamato \textbf{routed} (\emph{route daemon}) che è sempre in esecuzione.
+				
+		
+		\subsubsection{Internet Routing}
+		
+			I due protocolli di routing visti in precedenza (RIP e OSPF) vengono usati all'interno di un ISP (routing \textbf{intra-dominio}), che succede però quando bisogna effettuare il routing fra due o più ISP? Il routing \textbf{inter-dominio} si occupa proprio di questo.
+			
+			\paragraph{Autonomous System}
+				ogni ISP è considerato come un \textbf{AS}, ovvero un \emph{Autonomous System}, e viene \textbf{identificato} da un valore univoco di \textbf{16 bit}.
+				
+				Esistono tre tipologie di AS:
+				\begin{enumerate}
+					\item \emph{AS Stub}: gli AS che sono collegati \textbf{ad un solo AS} e \textbf{non consentono traffico} attraverso se stessi;
+					\item \emph{AS Multihomed}: gli AS che sono collegati \textbf{a più AS} e \textbf{non consentono traffico} attraverso se stessi;
+					\item \emph{AS di Transito}: gli AS che sono collegati \textbf{a più AS} e \textbf{consentono traffico} attraverso se stessi.
+				\end{enumerate}
+				
+				I vari AS vengono connessi fra di loro tramite dei router che vengono detti \emph{Gateway}.
+				
+			\paragraph{BGP}
+				\textbf{BGP} (\emph{Border Gateway Protocol}) è un protocollo \textbf{dedicato al routing inter-dominio}, basato sui \textbf{\emph{Path Vector}}, ovvero un Distance Vector in cui l'obiettivo primario è la \textbf{costruzione di un percorso ottimale in base a determinate priorità decise dagli AS}.
+				
+				Le destinazioni sono date da \textbf{prefissi CIDR}, che rappresentano sottoreti o collezioni di sottoreti.
+				
+				BGP è un protocollo particolare perché in realtà è \textbf{diviso in due sottoprotocolli}: \textbf{eBGP} (\emph{External BGP}) e \textbf{iBGP} (\emph{Internal BGP}); mentre il secondo è usato da tutti i router, il \textbf{primo è usato solo dai router Gateway}. 
+				
+				\subparagraph{eBGP}
+					si stabilisce una \textbf{connessione fra due router Gateway}, che si scambiano le informazioni su come \textbf{instradare i pacchetti all'AS vicine}.
+					
+				\subparagraph{iBGP}
+					all'interno di un AS, si stabilisce una \textbf{connessione fra ogni possibile coppia di router}, in modo da poter scambiare le informazioni su come raggiungere le altre AS (ottenute dai router Gateway con l'eBGP).
+					
+				\subparagraph{eBGP ed iBGP}
+					con la combinazione di eBGP ed iBGP si costruiscono infine le \textbf{Tabelle di Percorso} verso le altre AS; queste nuove tabelle vengono aggiunte alle tabelle di routing dei router Gateway e alle tabelle degli altri router vengono aggiunte linee che passano tramite i router Gateway per andare verso le altre AS.
+					\begin{itemize}
+						\item negli \emph{AS Stub}, il router Gateway aggiunge \textbf{1 linea} per l'unico altro Gateway a cui sono collegati;
+						\item negli \emph{AS di Transito}, i router Gateway aggiungono \textbf{tutte le linee} per \textbf{tutti i nodi delle altre AS} ed imposta il costo per raggiungerle (la metrica \textbf{dipende dal protocollo intra-dominio usato}).
+					\end{itemize}
+					
+				\subparagraph{Attributi del Percorso}
+					i percorsi in BGP vengono annunciati insieme a dei valori che sono detto \emph{attributi} e danno ulteriori informazioni sul percorso; di seguito sono elencati i tre attributi \textbf{obbligatori} che vengono sempre inviati con un percorso:
+					\begin{enumerate}
+						\item \emph{ORIGIN}: descrive l'origine dell'aggiornamento, può essere uno di tre valori:
+						\begin{itemize}
+							\item \textbf{IGP}, se viene da un protocollo interno all'AS;
+							\item \textbf{EGP}, se viene da un protocollo esterno all'AS;
+							\item \textbf{Incomplete}, se l'informazione dell'origine non è disponibile.
+						\end{itemize}
+						\item \emph{AS-PATH}: elenca tutti gli AS attraverso cui l'aggiornamento è passato;
+						\item \emph{NEXT-HOP}: dà l'indirizzo IP della prossima interfaccia attraverso cui passare per raggiungere la destinazione dell'aggiornamento.
+					\end{enumerate}
+					
+					Il prefisso di rete, unito agli attributi, annunciano ciò che viene detto \emph{rotta}: ogni Gateway quando riceve un annuncio di una rotta decide, \textbf{in base alle sue politiche di importazione}, se accettarla o meno.
+					
+				\subparagraph{Messaggi BGP}
+					\begin{itemize}
+						\item \emph{OPEN}, usato per aprire nuove connessioni;
+						\item \emph{UPDATE}, usato per annunciare le nuove rotte;
+						\item \emph{KEEPALIVE}, usato per mantenere una connessione attiva;
+						\item \emph{NOTIFICATION}, usato per segnalare errori nel messaggio precedente o annunciare la chiusura della connessione.
+					\end{itemize}								 
+					
+				\subparagraph{Implementazione}
+					BGP viene implementato al \textbf{Livello Applicazione} sulla \textbf{porta 179} ed utilizza il \textbf{protocollo TCP}.
+					
+			
+		\subsubsection{Routing Multicast}
+		
+			In precedenza abbiamo visto come vengono effettuati i routing \emph{Unicast} (IP sorgente $ \rightarrow $ IP destinatario) e \emph{Broadcast} (IP sorgente $ \rightarrow $ IP broadcast); 
+			
+			vediamo adesso come è stato approcciato il routing \textbf{\emph{Multicast}} \\ (IP sorgente $ \rightarrow $ \textbf{IP gruppo multicast}).
+			
+			Il routing \textbf{1 a N} può essere di due tipologie diverse:
+			\begin{itemize}
+				\item \emph{Multicast}: la sorgente invia \textbf{un solo messaggio}, che viene duplicato quando serve;
+				\item \emph{Unicast Multiplo}: la sorgente invia \textbf{n messaggi}, risulta però inefficiente.
+			\end{itemize}						
+			
+			\paragraph{Indirizzamento Multicast}
+			\label{par:multicastAddress}
+				per poter inviare i messaggi in multicast bisogna poter indirizzare \textbf{contemporaneamente} tutti gli host; per permettere ciò, l'indirizzamento IPv4 prevede una \textbf{serie di indirizzi} dedicati esclusivamente a questo compito e che \textbf{vanno da 224.0.0.0 a 239.255.255.255}.
+				
+			\paragraph{IGMP}
+				\textbf{IGMP} (\emph{Internet Group Management Protocol}) è il protocollo \textbf{dedicato alla trasmissione di messaggi in multicast}, esso ha il compito di \textbf{coordinare i router \emph{Multicast}} ed usa il \textbf{protocollo IP}.
+				
+				\subparagraph{Messaggi IGMP}
+					\begin{itemize}
+						\item \emph{MEMBERSHIP QUERY}, router $ \rightarrow $ host, usato per chiedere i gruppi di appartenenza;
+						\item \emph{MEMBERSHIP REPORT}, host $ \rightarrow $ router, risposta alla \emph{MEMBERSHIP QUERY};
+						\item \emph{MEMBERSHIP LEAVE}, usato da un host per lasciare un gruppo.
+					\end{itemize}
+					
+					Riguardo alle \emph{Membership}, ognuna di esse ha un \textbf{timer} ed ogni router mantiene una lista delle Membership degli host delle reti e sottoreti a cui è connesso.
+					
+				\subparagraph{Costruzione del Sottoalbero di Instradamento}
+					nel momento in cui viene inviato un messaggio in multicast, esso attraversa ciò che viene detto \emph{Albero di Instradamento}, per poter raggiungere tutti gli host del gruppo; la costruzione di tale albero può avvenire in due modi:
+					\begin{enumerate}
+						\item \emph{Condiviso dal Gruppo}, se c'è un albero \textbf{unico} per il \textbf{gruppo}, con un nodo che viene detto "centro" e che serve ad inviare i messaggi;
+						\item \emph{Basato sull'Origine}, se c'è \textbf{un} albero per \textbf{ogni nodo} del gruppo, che è radice del suo albero.
+					\end{enumerate}
+					
+				\newpage
+				
+				
+		\subsection{Livello Collegamento}
+		
+			Il Livello Collegamento ha il compito di garantire \textbf{la comunicazione \emph{hop-to-hop}}, quindi il trasferimento di pacchetti dati, che sono detti "\textbf{frame}", da un host all'altro.
+			
+			I protocolli del Livello Collegamento devono essere particolarmente \textbf{versatili}, in quanto devono poter essere usati da tutte le tecnologie hardware che si connettono ad una rete; deve inoltre gestire collegamenti \textbf{punto-punto} oppure \textbf{broadcast}.
+			
+			Il Livello Collegamento è diviso in \textbf{due sottolivelli}:
+			\begin{itemize}
+				\item \emph{Data-Link Control} (\textbf{DLC}): si occupa del \textbf{trasferimento dei frame};
+				\item \emph{Media Access Control} (\textbf{MAC}): si occupa di gestire la \textbf{comunicazione broadcast}.
+			\end{itemize}
+			
+			
+			\subsubsection{Notazione}
+				\begin{itemize}
+					\item host e router $ \rightarrow $ nodi/stazioni;
+					\item collegamento/link $ \rightarrow $ canale di comunicazione;
+					\item R = rate bit/s di un link.
+				\end{itemize}
+			
+			
+			\subsubsection{Servizi Offerti}
+				\begin{itemize}
+					\item \emph{Framing}: ovvero l'incapsulamento ed il decapsulamento dei dati;
+					\item \emph{Consegna Affidabile};
+					\item \emph{Indirizzamento degli host}: viene utilizzato l'indirizzamento MAC;
+					\item \emph{Controllo di flusso e di errori}. 
+				\end{itemize}
+				
+				\paragraph{Controllo Errori}
+					gli errori nel trasferimento di frame a questo livello sono \textbf{generalmente dovuti ad interferenze} che possono influenzare o singoli bit (\textbf{più raramente}) od un gruppo (in questo caso è detto "\emph{burst}").
+					
+					Per poter verificare l'integrità dei frame, vengono aggiunti dei bit di controllo (si usano bit di \textbf{parità unidimensionale o bidimensionale} solitamente) che sono detti \textbf{EDC} (\emph{Error Detection and Control}).
+					
+			
+			\subsubsection{Protocolli di Accesso Multiplo}
+				Hanno il compito di \textbf{regolare la trasmissione e la ricezione di frame} e sono divisi in tre categorie:
+				\begin{enumerate}
+					\item Protocolli \emph{a Suddivisione del Canale};
+					\item Protocolli \emph{ad Accesso Casuale};
+					\item Protocolli \emph{a Rotazione}.
+				\end{enumerate}
+				
+				\paragraph{Protocolli a Suddivisione del Canale}
+					\begin{itemize}
+						\item \textbf{TDMA} (\emph{Time Division Multiple Access}): suddivide il canale in \textbf{intervalli temporali}: siano \emph{N} gli intervalli, allora per ogni nodo il \textbf{tasso trasmissivo} è pari a $ \frac{R}{N} $ bit/s;
+						\item \textbf{FDMA} (\emph{Frequence Division Multiple Access}): suddivide il canale in \textbf{fasce di frequenza} e ne \textbf{assegna una ad ogni stazione};
+						\item \textbf{CDMA} (\emph{Code Division Multiple Access}): verrà approfondito in seguito \hyperref[sec:CDMA]{nell'apposita sezione.}
+					\end{itemize}					
+					
+				\paragraph{Protocolli ad Accesso Casuale}
+					l'accesso è detto casuale perché \textbf{non programmato}: quando un nodo deve \textbf{inviare} un frame allora \textbf{accede al canale}. Il problema maggiore di questi protocolli è la \textbf{collisione dei frame}: essi devono quindi permettere l'individuazione di collisioni e la conseguente ritrasmissione dei frame.
+					
+					\subparagraph{ALOHA Puro}
+						\textbf{ALOHA Puro} fa trasmettere ai nodi \textbf{quando vogliono} e prevede la \textbf{trasmissione di ACK}, con un relativo timer di ricezione ACK dal lato mittente.
+						
+						Se si rileva una collisione, allora si attende un tempo casuale detto di "\emph{back-off}" al termine del quale vengono ritrasmessi i dati; se dopo $ k_{MAX} $ (che è pari a 15) tentativi la trasmissione non ha buon fine allora viene interrotta.
+						
+						\begin{itemize}
+							\item \emph{Timeout} = $ 2T_{p} $, dove $ T_{p} = RTT $ dei due nodi più lontani;
+							\item \emph{Back-Off} = $ rand*T_{fr} $, dove $ rand \in [0, 2^{k-1}] $ e $ T_{fr} $ è il tempo per inviare un frame;
+						\end{itemize}
+						
+						Il \textbf{Tempo di Vulnerabilità}, ovvero il tempo in cui può verificarsi una collisione durante la trasmissione, in ALOHA Puro è pari a $ 2T_{fr} $, in quanto un frame inviato a $ t_{0} $ collide se c'è un altro frame inviato fra $ [t_{0}-T_{fr}, t_{0}+T_{fr}] $.
+						
+						Di conseguenza, l'\textbf{efficienza} di ALOHA Puro, ovvero la \textbf{\% di banda usata con successo}, è calcolata nel seguente modo (si noti che la \emph{p} sta per "\emph{probabilità di}"):\\
+						\emph{p(il nodo trasmette)} * \emph{p(no trasm. in $ [t_{0}-T_{fr}, t_{0}] $)} * \emph{p(no trasm. in $ [t_{0}, t_{0}+T_{fr}] $)} 
+						\[ p(1-p)^{N-1}(1-p)^{N-1} = p(1-p)^{2(N-1)} \sim \frac{1}{2e} = 0,18 \]
+						
+						L'efficienza di ALOHA Puro è quindi pari al \textbf{18\%}.
+						
+					\subparagraph{Slotted ALOHA}
+						\textbf{Slotted ALOHA} prevede la \textbf{divisione del tempo in intervalli lunghi un} $ T_{fr} $, ponendo le restrizioni di poter inviare frame con una \textbf{dimensione fissata e solo all'inizio di uno slot}.
+						
+						Il \textbf{Tempo di Vulnerabilità} in questo caso è pari ad \textbf{uno slot}, quindi un $ T_{fr} $, mentre l'\textbf{efficienza} è pari a:
+						\[ p(1-p)^{N-1} \sim \frac{1}{e} = 0,37 \]						
+						
+						ovvero al \textbf{37\%}.
+						
+					\subparagraph{CSMA}
+						\textbf{CSMA} (\emph{Carrier Sense Multiple Acces}) prevede l'\textbf{ascolto del canale}: se il \textbf{canale è libero} allora il nodo può trasmettere, altrimenti, in base al tipo di \textbf{persistenza}, avrà un certo comportamento.
+						
+						In questo caso il \textbf{Tempo di Vulnerabilità} è pari al \textbf{ritardo di propagazione} $ T_{p} $ perché due nodi possono iniziare a trasmettere prima che il frame di uno arrivi all'altro, ipotizzando che il canale sia libero. \\
+						
+						Come detto in precedenza, il CSMA può avere diversi tipi di persistenza, elencati di seguito:
+						\begin{itemize}
+							\item \emph{Non Persistente}: \textbf{attende un tempo casuale} prima di rimettersi in ascolto se rileva il \textbf{canale occupato}, altrimenti trasmette subito;
+							\item \emph{p-Persistente}: rimane \textbf{in ascolto} se rileva il canale occupato, altrimenti \textbf{trasmette con probabilità p};
+							\item \emph{1-Persistente}: come il \emph{p Persistente}, ma \textbf{p è uguale a 1} e quindi trasmette appena rileva il canale libero.
+						\end{itemize}
+						
+					\subparagraph{CSMA/CD}
+						\textbf{CSMA/CD} (\emph{Collision Detection}) prevede, oltre all'ascolto prima della trasmissione, l'ascolto del canale \textbf{anche durante la trasmissione}: appena viene rilevata la collisione, allora si ferma la trasmissione.
+						
+						Poiché il nodo deve rimanere in ascolto durante \textbf{tutta la trasmissione} del frame, allora tale tempo deve essere \textbf{maggiore o uguale a due volte il ritardo di propagazione} (due volte per poter rimanere in ascolto per frame che sono trasmessi prima o dopo quello inviato dal nodo); di conseguenza la \textbf{dimensione minima} del frame è pari al prodotto $ R2T_{p} $.
+						
+						L'\textbf{efficienza} del CSMA/CD è pari al \textbf{50\%}, se \emph{1-Persistente}.
+						
+				\paragraph{Protocolli a Rotazione}
+					i Protocolli a Rotazione realizzano un compromesso fra i due tipi di protocolli descritti precedentemente.
+					
+					\subparagraph{Polling}
+						protocollo \textbf{centralizzato}, in cui un nodo detto \textbf{\emph{poll} gestisce la trasmissione sul canale}, ordinando a quale nodo trasmettere ed eliminando le collisioni e gli slot vuoti dello Slotted Aloha; gli unici svantaggi sono il ritardo derivato dal polling e la vulnerabilità a guasti del poll.
+						
+					\subparagraph{Token-Passing}
+						protocollo \textbf{decentralizzato}, in cui i nodi si passano un \textbf{token che consente la trasmissione}; l'unico problematica si genera nel momento in cui si guasta il nodo col token: a quel punto l'intero canale è bloccato.
+						
+					\newpage
+					
+				
+			\subsubsection{Indirizzamento MAC}
+			\label{sec:MAC}
+			
+				L'indirizzamento MAC prevede l'utilizzo di \textbf{48 bit} per indirizzo, permettendo di identificare \textbf{univocamente ogni interfaccia}.
+				
+				Il valore dell'indirizzo è in \textbf{esadecimale}, quindi ad ogni byte (in totale ogni indirizzo ne ha 6) corrispondono 2 cifre esadecimali.
+				
+				L'indirizzo MAC di \textbf{broadcast} è uguale a quello usato in IP, il suo valore in esadecimale è infatti FF-FF-FF-FF-FF-FF.
+				
+				Poiché il \textbf{Livello Collegamento usa l'indirizzamento MAC per gli host}, l'header è formato dall'indirizzo MAC della prossima interfaccia e quello dell'interfaccia attuale:
+				\begin{center}
+					\begin{tabular}{ccc}
+						\textbf{MAC Interfaccia seguente} & | & \textbf{MAC Interfaccia attuale}					
+					\end{tabular}
+				\end{center}
+				
+					
+			\subsubsection{ARP}
+			
+				\textbf{ARP} (\emph{Address Resolution Protocol}) è il protocollo dedicato a \textbf{associare gli indirizzi IP agli indirizzi MAC}.
+				Viene implementato a \textbf{Livello Rete}, e costruisce una \textbf{tabella per mantenere le associazioni}, il cui record generico è formato nel seguente modo:
+				\begin{center}
+					\begin{tabular}{ccccccc}
+						< & \textbf{Indirizzo IP} & ; & \textbf{Indirizzo MAC} & ; & TTL & >					
+					\end{tabular}
+				\end{center}
+				
+				\paragraph{Funzionamento}
+					un nodo, per ottenere un indirizzo MAC da un indirizzo IP invia una \textbf{richiesta ARP in broadcast}, a cui soltanto il \textbf{nodo di cui si chiede il MAC risponde}.
+					
+					Ogni messaggio ARP contiene le seguenti informazioni:
+					\begin{itemize}
+						\item il \textbf{protocollo del Livello Rete e Collegamento}, due sequenze di 16 bit;
+						\item le \textbf{lunghezze} degli indirizzi del \textbf{Protocollo} (Liv. Rete) e dell'\textbf{Hardware} (Liv. Collegamento), due sequenze di 8 bit;
+						\item l'\textbf{operazione} (o \emph{Richiesta} o \emph{Risposta}), lunga 16 bit;
+						\item gli \textbf{indirizzi} del \textbf{mittente} e del \textbf{destinatario} (sia MAC che IP).
+					\end{itemize}
+			
+				\newpage
+				
+
+			\subsubsection{Ethernet}
+			
+				Ethernet è uno \textbf{standard di interconnessione} creato per poter connettere dispositivi di produttori diversi. Come standard, deve definire le \textbf{funzionalità} del \textbf{Livello Fisico} e del \textbf{Livello Collegamento} nelle LAN.
+				
+				La documentazione di Ethernet si trova nel documento \textbf{IEEE 802}.
+				
+				\paragraph{Ethernet Standard}
+					fu il primo standard di Ethernet e supportava LAN con un \textbf{bit rate di 10 Mbps} (\emph{MegaBit per secondo}).
+					
+					\subparagraph{Formato Messaggio}					
+						i messaggi di Ethernet Standard sono strutturati nel seguente modo:
+						\begin{itemize}
+							\item l'\textbf{Header del Livello Fisico}, che contiene:
+							\begin{itemize}
+								\item il \textbf{Preambolo}, formato da 7 byte tutti uguali (10101010) e usato per \textbf{sincronizzare le interfacce};
+								\item l'\textbf{SFD} (\emph{Starting Frame Delimiter}), formato da 1 byte (10101011) e che \textbf{segnala l'inizio del frame};
+							\end{itemize}
+							\item il \textbf{Frame}, che contiene sia l'\textbf{Header del Livello Collegamento} che i \textbf{Dati}:
+							\begin{itemize}
+								\item l'\textbf{indirizzo del Destinatario}, formato da 6 byte;
+								\item l'\textbf{indirizzo del Mittente}, formato da 6 byte (si noti che sono gli indirizzi MAC);
+								\item il \textbf{Tipo}, formato da 2 byte che \textbf{indica il protocollo del Livello Rete};
+								\item i \textbf{Dati} ed il \textbf{padding}, che possono andare da un \textbf{minimo di 46 byte} ad un \textbf{massimo di 1500 byte} (il padding, ovvero una sequenza di bit uguali a 0, è usato solo nel caso in cui i dati non arrivino al minimo di 46 byte);
+								\item il \textbf{CRC}, formato da 4 byte, per il \textbf{controllo degli errori}.
+							\end{itemize}
+						\end{itemize}
+					
+						I motivi per cui i Dati debbano andare da un minimo di 46 byte (creando un frame lungo \textbf{64 byte}) ad un massimo di 1500 (creando un frame lungo \textbf{1518 byte}) sono due:
+						\begin{enumerate}
+							\item \textbf{minimo 46}, perché poiché Ethernet Standard \textbf{utilizza il CSMA/CD} e prevede LAN in cui la \textbf{distanza massima} è di \textbf{2500 m}, allora il frame deve essere lungo almeno 64 byte per far funzionare bene il CSMA/CD;
+							\item \textbf{massimo 1500}, per evitare che non ci siano messaggi che \textbf{monopolizzino il canale}.
+						\end{enumerate}
+						
+					\newpage
+						
+					\subparagraph{Caratteristiche}	
+						\begin{itemize}
+							\item \textbf{Connectionless};
+							\item \textbf{Non affidabile};
+							\item \textbf{CSMA/CD}, con la seguente caratterizzazione:
+								\begin{enumerate}
+									\item \textbf{1-Persistente};
+									\item quando viene \textbf{rilevata una collisione}, si interrompe la trasmissione e viene \textbf{inviato un segnale di disturbo lungo 48 bit}, detto "\emph{Jam}";
+									\item ha un \textbf{Backoff Esponenziale}, e si aspetta un tempo pari a $ kT_{512bit} $ (ovvero il tempo per trasmettere un frame lungo 64 byte) dove k si sceglie casualmente fra i valori $ \{0, 1, 2, \dots, 2^{m-1}\} $ in cui m = $ \min\{n, 10\} $ ($ n $ è il numero di collisioni consecutive).
+								\end{enumerate}
+						\end{itemize}
+						
+					\subparagraph{Topologie}		
+						Ethernet Standard prevede due possibili topologie per le LAN:
+						\begin{enumerate}
+							\item \emph{a Bus};
+							\item \emph{a Stella con Hub} (l'Hub è un ripetitore broadcast).	
+						\end{enumerate}
+						
+					\paragraph{Fast Ethernet}
+						creato per supportare le LAN con bit rate \textbf{fino a 100 Mbps}, per poter continuare ad usare il CSMA/CD con frame da 64 byte furono ideate due soluzioni: si pensò o di \textbf{diminuire} la distanza \textbf{massima} a \textbf{250 m} oppure di \textbf{usare} uno \textbf{Switch di Collegamento} con una topologia a stella, senza bisogno di usare il CSMA/CD.
+ 						
+ 						\subparagraph{Switch di Collegamento}
+ 							è un dispositivo che permette lo \textbf{smistamento dei pacchetti in maniera selettiva}, eliminando quindi le collisioni e la necessità di utilizzare il CSMA/CD.
+ 							
+ 							Per \textbf{apprendere gli indirizzi} utilizza un sistema di \textbf{auto apprendimento}, costruendo la tabella mano a mano che gli vengono inviati messaggi oppure con \textbf{un flooding di richeste ARP}.
+ 							
+ 							Di seguito sono elencate le proprietà dello Switch:
+ 							\begin{itemize}
+ 								\item elimina le collisioni;
+ 								\item può connettere reti con tecnologie diverse;
+ 								\item aggiunge un livello di sicurezza;
+ 								\item non deve essere inizializzato manualmente;
+ 								\item risulta trasparente ai nodi.
+ 							\end{itemize}
+ 							
+ 					\paragraph{Gigabit Ethernet}
+ 						versione successiva di Fast Ethernit, supporta reti LAN con bit rate fino a \textbf{1000 Mbps}, ovvero \textbf{1 Gbps} (da qui il nome); prevede una topologia \textbf{a stella con Switch}.
+ 						
+ 					
+ 		\subsubsection{VLAN}
+ 			
+ 			Una \textbf{VLAN} (o \emph{LAN Virtuale}) è una \textbf{configurazione di una LAN mediante software}, ovvero una \textbf{divisione in gruppi logici} dei nodi.
+ 			
+ 			La creazione di VLAN è possibile grazie all'\textbf{utilizzo di Switch}, in cui è possibile assegnare alle VLAN delle porte dedicate attraverso cui inviare i messaggi destinati a nodi di quella rete.
+ 			
+ 		
+ 		\subsubsection{Reti Punto-Punto}
+ 			
+ 			Le reti Punto-Punto prevedono \textbf{collegamenti dedicati fra 2 nodi} ed usano il \textbf{PPP} (\emph{Point-to-Point Protocol}).
+ 			
+ 			\paragraph{PPP}
+ 				\textbf{PPP} è un protocollo molto semplice, in quanto \textbf{non prevede indirizzamento} (il nodo che riceve è quello che non trasmette) e si deve occupare soltanto del \textbf{framing} e della \textbf{rilevazione e correzione degli errori}.
+ 				
+ 				\subparagraph{Formato Messaggio}
+ 					\begin{itemize}
+ 						\item \textbf{Flag}, \textbf{all'inizio e alla fine del messaggio} (serve a \textbf{delimitarlo}), è sempre 01111110;
+ 						\item \textbf{Address}, sempre 11111111;
+ 						\item \textbf{Control}, sempre 00000011;
+ 						\item \textbf{Protocol}, che descrive il protocollo del Livello Rete ed è formato da 1 o 2 byte;
+ 						\item \textbf{Dati};
+ 						\item \textbf{Checksum}, 2 o 4 byte.
+ 					\end{itemize}
+ 					
+\newpage 					
+ 
+ 
+\section{LAN Wireless, Bluetooth e CDMA}
+
+
+	\subsection{LAN Wireless}
+	
+		Le LAN Wireless permettono la connessione di dispositivi senza dover usare mezzi cablati, ma usando come mezzo trasmissivo l'\textbf{aria}; queste reti sono poi collegate alle altre reti tramite degli \textbf{access point cablati} (ma solo in Reti \emph{con Infrastruttura}).
+		
+		Poiché vengono inviati segnali attraverso l'aria, queste reti sono soggette a varie problematiche:
+		\begin{itemize}
+			\item \textbf{Attenuazione del Segnale};
+			\item \textbf{Riflessioni dei segnali su Ostacoli};
+			\item \textbf{Interferenza}.
+		\end{itemize}
+		
+		Per quantificare gli \textbf{errori nei trasferimenti dei dati} si usa il \textbf{SNR} (\emph{Signal to Noise Ratio}), un rapporto dato dalla seguente formula:
+		\[ \frac{forzaSegnale}{forzaInterferenza} \]
+		
+		Inoltre, una rete LAN Wireless può appartenere ad una di due tipologie:
+		\begin{enumerate}
+			\item Rete \emph{con Infrastruttura}, che usano gli \textbf{AP} (\emph{Access Point});
+			\item Rete \emph{ad Hoc}, in cui \textbf{gli host si organizzano da soli}.
+		\end{enumerate}
+		
+		\paragraph{Architettura Reti}
+			le reti Wireless possono avere due tipi di architetture:
+			\begin{enumerate}
+				\item \textbf{BSS} (\emph{Basic Service Set}): una singola rete (sia \emph{con Infrastruttura} che \emph{ad Hoc}, anche se è più diffusa la prima categoria);
+				\item \textbf{ESS} (\emph{Extended Service Set}): due o più \emph{BSS con Infrastruttura}, \textbf{collegati} tramite \textbf{Access Point}.
+			\end{enumerate}
+			
+		
+		\subsubsection{Canali e Associazioni}
+			
+			Lo \textbf{spettro delle frequenze Wireless} è diviso in \textbf{11 fasce}, che vengono scandite dai dispositivi per cercare segnali.
+			
+			L'associazione di un dispositivo ad una rete Wireless è una procedura che si basa proprio su questa divisione delle frequenze e sulla potenza dei segnali inviati dagli AP:
+			\begin{enumerate}
+				\item gli AP inviano periodicamente segnali con il loro \textbf{SSID} (\emph{Service Set ID}) e indirizzo MAC;
+				\item l'host scandisce le 11 fasce;
+				\item viene scelto l'AP col \textbf{segnale più forte};
+				\item l'AP a questo punto accetta la richiesta d'accesso (in alcuni casi serve un'autenticazione) e permette all'host di fare richieste DHCP.
+			\end{enumerate}				
+		
+		
+		\subsubsection{Accesso al Mezzo}
+		
+			Nelle reti Wireless per l'accesso al mezzo esistono due tecniche diverse:
+			\begin{enumerate}
+				\item \textbf{DCF} (\emph{Distributed Coordination Function}), ovvero una contesa non regolata (verrà approfondita in seguito);
+				\item \textbf{PCF} (\emph{Point Coordination Function}), ovvero un accesso regolato dagli AP e quindi senza contesa.
+			\end{enumerate}
+
+
+		\subsubsection{DCF}
+		
+			Poiché il mezzo trasmissivo è condiviso, i nodi \textbf{competono per poterlo usare}.
+			
+			Per come sono strutturate le reti Wireless, è impossibile \textbf{fare Collision Detection} per vari motivi:
+			\begin{itemize}
+				\item Sarebbe troppo costoso dotare i dispositivi di adattatori che gli consentano di captare \textbf{segnali molto più deboli} di quelli che vengono trasmessi dal dispositivo stesso;
+				\item \emph{Problema dell'Hidden Terminal}, ovvero la possibilità che un host non possa accorgersi che un altro stia trasmettendo:
+				\begin{itemize}
+					\item per l'\textbf{attenuazione del segnale} (i due host sono troppo lontani);
+					\item per la \textbf{presenza di un ostacolo}, che può bloccare il passaggio dei segnali da un host all'altro.
+				\end{itemize}
+			\end{itemize}
+			
+			Per questo motivo le reti Wireless utilizzano il \textbf{CSMA/CA}.
+			
+		\subsubsection{CSMA/CA}
+			
+			Il \textbf{CSMA/CA} (\emph{Collision Avoidance}) è pensato per \textbf{evitare collisioni ascoltando il canale prima di trasmettere}.
+			
+			\paragraph{Funzionamento}
+				\begin{enumerate}
+					\item Ascolto \textbf{persistente} del canale;
+					\item Canale \textbf{libero} $ \rightarrow $ \textbf{attesa DIFS} (\emph{DFS Interframe Space});
+					\item Canale \textbf{ancora libero} $ \rightarrow $ \textbf{attesa tempo Back-Off}, scelto a \textbf{caso con la Contention Window} (la dimensione della \emph{CW} raddoppia per ogni messaggio inviato, fino ad un limite dopo il quale viene chiusa la connessione);
+					\item Invia l'\textbf{RTS} (\emph{Request To Send}) \textbf{al destinatario};
+					\item Il \textbf{destinatario} invia a \textbf{tutti} gli host una \textbf{CTS} (\emph{Clear To Send}), dopo aver \textbf{atteso un SIFS} (\emph{Short Interframe Space}): in pratica \textbf{informa tutti che il canale è occupato dal mittente};
+					\item Il mittente \textbf{attende un SIFS}, dopo il quale comincia la \textbf{trasmissione} e \textbf{setta il timer per l'ACK};
+					\item Il destinatario, \textbf{ricevuto il messaggio}, \textbf{attende un SIFS} dopo il quale invia l'ACK.
+				\end{enumerate}					 
+					
+			\paragraph{NAV}
+				ogni host nell'RTS \textbf{include il tempo per cui occuperà il canale}: gli host che vengono raggiunti dal CTS usano il \textbf{NAV} (\emph{Network Allocation Vector}) per mantenere quest'informazione.
+					
+			\subparagraph{Formato Messaggio}
+				ogni frame inviato contiene i seguenti dati:
+				\begin{itemize}
+					\item \textbf{FC} (\emph{Frame Control}), 2 byte di informazioni sul frame, i cui dati più importanti sono:
+					\begin{itemize}
+						\item \textbf{Type}, 2 bit che indicano di che tipo è il frame:
+						\begin{itemize}
+							\item \emph{Gestione} (00);
+							\item \emph{Controllo} (01);
+							\item \emph{Dati} (10);
+						\end{itemize}
+						\item \textbf{SubType}, 4 bit che vengono usati solo se il \textbf{Type} è \emph{Controllo}:
+						\begin{itemize}
+							\item \emph{RTS} (1011);
+							\item \emph{CTS} (1100);
+							\item \emph{ACK} (1101);
+						\end{itemize}
+						\item \textbf{To DS} e \textbf{From DS}, 2 bit che danno informazioni sull'\textbf{indirizzamento}:
+						\begin{itemize}
+							\item \textbf{To DS = 0}, \textbf{From DS = 0}: da \textbf{Host} a \textbf{Host}
+							\begin{enumerate}
+								\item Address 1: destinatario;
+								\item Address 2: mittente;
+								\item Address 3: BSS ID;
+								\item Address 4: N/A;
+							\end{enumerate}								 
+							\item \textbf{To DS = 0}, \textbf{From DS = 1}: da \textbf{AP} a \textbf{Host}
+							\begin{enumerate}
+								\item Address 1: destinatario;
+								\item Address 2: AP mittente;
+								\item Address 3: mittente;
+								\item Address 4: N/A;
+							\end{enumerate}			
+							\item \textbf{To DS = 1}, \textbf{From DS = 0}: da \textbf{Host} a \textbf{AP}
+							\begin{enumerate}
+								\item Address 1: AP destinatario;
+								\item Address 2: mittente;
+								\item Address 3: destinatario;
+								\item Address 4: N/A;
+							\end{enumerate}			
+							\item \textbf{To DS = 1}, \textbf{From DS = 1}: da \textbf{AP} a \textbf{AP}
+							\begin{enumerate}
+								\item Address 1: AP destinatario;
+								\item Address 2: AP mittente;
+								\item Address 3: destinatario;
+								\item Address 4: mittente;
+							\end{enumerate}			
+						\end{itemize}
+					\end{itemize}
+					\item \textbf{Durata trasmissione}, 2 byte;
+					\item \textbf{Tre Indirizzi}, ognuno da 6 byte (\textbf{indirizzi MAC});
+					\newpage
+					\item \textbf{SC} (\emph{Sequence Control}), 2 byte:
+					\begin{enumerate}
+						\item \textbf{\# Frammento}, 4 bit;
+						\item \textbf{\# Sequenza}, 12 bit;
+					\end{enumerate}
+					\item \textbf{Un Indirizzo}, 6 byte;
+					\item \textbf{Frame Body}, da 0 a 2312 byte;
+					\item \textbf{FCS} (\emph{Frame Check Sequence}), un \textbf{CRC} da 4 byte.
+				\end{itemize}
+					
+	
+	\subsection{Bluetooth}
+		
+		Una \textbf{rete Bluetooth} consiste in una connessione di \textbf{dispositivi con funzionalità diverse}, in una \textbf{rete Wireless \emph{ad Hoc}} e con un \textbf{massimo di 8 host}.
+		
+		Le reti Bluetooth ricadono nelle \textbf{PAN} ed ha un raggio di $ \sim $ 10 m.
+		
+		
+		\subsubsection{Struttura}
+		
+			Le reti possono essere di due tipi:
+			\begin{enumerate}
+				\item \emph{Piconet}, una singola rete in cui \textbf{una stazione} è detta \textbf{primaria} mentre le \textbf{altre secondarie};
+				\item \emph{Scatternet}, un \textbf{insieme} di \emph{Piconet}.
+			\end{enumerate}
+			
+		
+		\subsubsection{Accesso al Mezzo Trasmissivo}
+			
+			Viene usata una \textbf{variante} del TDMA: il \textbf{TDD-TDMA} (\emph{Time Division Duplexing TDMA}); questa variante prevede una comunicazione \textbf{half-duplex}, con \textbf{slot temporali} da \textbf{625 $ \mu $s}.
+			
+			La trasmissione è half-duplex perché negli slot \textbf{pari trasmette la primaria}, mentre negli slot \textbf{dispari le secondarie}, che trasmettono \textbf{singolarmente dopo esser scelte dalla primaria}; inoltre la trasmissione può durare \textbf{al più 366 $ \mu $s}, poiché il tempo restante è impiegato per effettuare il \textbf{salto di frequenza}.
+	
+	
+	\subsection{CDMA}
+	\label{sec:CDMA}
+	
+		Il \textbf{CDMA} (\emph{Code Division Multiple Access}) è un protocollo ad \textbf{Accesso Casuale} che permette la \textbf{trasmissione contemporanea di tutte le stazioni} sfruttando una particolare \textbf{codifica del segnale}.
+		
+		Per effettuare questa codifica, ad \textbf{ogni stazione} è assegnato un \textbf{codice} con le seguenti \textbf{proprietà}:
+		\begin{itemize}
+			\item se \textbf{moltiplicato per se stesso}, dà il \textbf{numero di stazioni};
+			\item se \textbf{moltiplicato per un altro codice}, dà \textbf{0}.
+		\end{itemize}
+	
+		\subsubsection{Codifica del Segnale}
+			
+			I bit trasmessi vengono codificati con i seguenti valori:
+				\begin{itemize}
+					\item 0: -1;
+					\item 1: +1;
+					\item \emph{Stazione Muta}: 0.
+				\end{itemize}
+				
+			A questo punto, ogni segnale viene \textbf{moltiplicato per il codice della sua stazione}, e poi vengono \textbf{tutti sommati}. 
+			
+			Di conseguenza, in base anche alle proprietà descritte precedentemente, per ottenere i dati trasmessi da una generica stazione $ D_{i} $ basta moltiplicare tale somma per il codice della stazione e dividerlo poi per il numero di stazioni:
+			\[ \frac{(d_{1}c_{1} + \dots+ d_{i}c_{i} + \dots+ d_{N}c_{N})c_{i}}{N} = \]
+			\[ \frac{d_{1}c_{1}c_{i} + \dots+ d_{i}c_{i}c_{i} + \dots+ d_{N}c_{N}c_{i}}{N} = \]
+			\[ \frac{d_{1}0 + \dots+ d_{i}N + \dots+ d_{N}0}{N} = \]
+			\[ \frac{d_{i}N}{N} = \]
+			\[ d_{i} \]
+			
+		
+		\subsubsection{Generazione dei Codici}
+		
+			Per generare i codici da assegnare alle stazioni si usano le \textbf{\emph{Tabelle di Walsh}}, ovvero delle matrici quadrate costruite nel seguente modo:
+			\[ W_{1} = 
+				\begin{bmatrix}
+					\pm1
+				\end{bmatrix} \]
+
+			(con una sola stazione si può scegliere o +1 o -1 come codice.)
+			
+			\[ W_{2i} = 				
+				\begin{bmatrix}
+					W_{i} & W_{i} \\
+					W_{i} & \overline{W_{i}} \\
+				\end{bmatrix} \]
+			
+			A questo punto, all'\emph{i-esima} stazione verrà assegnato come codice l'\emph{i-esima riga} della matrice.
+
+\end{document}
